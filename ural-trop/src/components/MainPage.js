@@ -1,7 +1,7 @@
 // components/MainPage.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from './../Group 3.png';
+import logo from '../logo.png';
 import fon from '../fon.png';
 import './../App.css';
 
@@ -9,10 +9,10 @@ const MainPage = () => {
   const navigate = useNavigate();
 
   const nominations = [
-    { id: 1, title: 'красивый хуй', path: 'best-photographer' },
-    { id: 2, title: 'славный пенис', path: 'nomination-2' },
-    { id: 3, title: 'большие пречендалы', path: 'nomination-3' },
-    { id: 4, title: 'вкусный хуй', path: 'nomination-4' },
+    { id: 1, title: 'лучший фотограф', path: 'best-photographer' },
+    { id: 2, title: '2 НОМИНАЦИЯ', path: 'nomination-2' },
+    { id: 3, title: '3 НОМИНАЦИЯ', path: 'nomination-3' },
+    { id: 4, title: '4 НОМИНАЦИЯ', path: 'nomination-4' },
   ];
 
   const handleNominationClick = (path) => {
@@ -31,7 +31,8 @@ const MainPage = () => {
           <button className="nav-tab">Карта</button>
           <button className="nav-tab">Маршруты</button>
           <button className="nav-tab">Точки притяжения</button>
-          {/* Кнопка "Выход" убрана */}
+          <button className="nav-tab">Три урала</button>
+          <button className="nav-tab">Спецпроекты</button>
         </nav>
       </header>
 
@@ -41,7 +42,7 @@ const MainPage = () => {
         style={{ backgroundImage: `url(${fon})` }}
       >
         <div className="nominations-container">
-          <h1 className="nominations-title">ХУЙ</h1>
+          <h1 className="nominations-title">НОМИНАЦИИ</h1>
           
           <div className="nominations-grid">
             {nominations.map((nomination) => (

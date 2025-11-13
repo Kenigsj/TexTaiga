@@ -1,7 +1,7 @@
 // components/LoginPage.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from './../Group 3.png';
+import logo from './../logo.png';
 import './../App.css';
 
 const LoginPage = () => {

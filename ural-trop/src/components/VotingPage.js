@@ -1,7 +1,7 @@
 // components/VotingPage.js
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import logo from '../Group 3.png';
+import logo from '../logo.png';
 import photo from '../fon.png';
 import './../App.css';
 
@@ -34,8 +34,6 @@ const VotingPage = () => {
 
   const handleCloseModal = () => {
     setShowSuccessModal(false);
-    // Можно сбросить выбранный рейтинг если нужно
-    // setSelectedRating(0);
   };
 
   const handleNextPhoto = () => {
@@ -58,6 +56,8 @@ const VotingPage = () => {
           <button className="nav-tab">Карта</button>
           <button className="nav-tab">Маршруты</button>
           <button className="nav-tab">Точки притяжения</button>
+          <button className="nav-tab">Три урала</button>
+          <button className="nav-tab">Спецпроекты</button>
         </nav>
       </header>
 
