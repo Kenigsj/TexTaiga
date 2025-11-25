@@ -1,0 +1,4 @@
+2025-11-25 16:26:02.357042+05:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Синтаксическая ошибка в выражении SQL "[*]SEKECT * FROM votes"; ожидалось "SAVEPOINT, SCRIPT, SHUTDOWN"
+Syntax error in SQL statement "[*]SEKECT * FROM votes"; expected "SAVEPOINT, SCRIPT, SHUTDOWN"; SQL statement:
+SEKECT * FROM votes [42001-232]
