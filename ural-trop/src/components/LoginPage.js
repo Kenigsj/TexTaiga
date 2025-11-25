@@ -7,73 +7,93 @@ import './../App.css';
 const LoginPage = () => {
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (login.trim() && password.trim()) {
+
+    setError(""); // очищаем ошибку
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/auth/login?login=${login}&password=${password}`, {
+    	method: "POST"
+      });
+
+      const token = await response.text();
+
+      if (token === "INVALID") {
+        setError("Неверный логин или пароль");
+        return;
+      }
+
+      // сохраняем токен в память браузера
+      localStorage.setItem("token", token);
+
+      // успешный вход
       navigate('/main');
+
+    } catch (err) {
+      console.error(err);
+      setError("Ошибка соединения с сервером");
     }
   };
 
   return (
     <div className="login-page">
-      {/* Шапка с логотипом */}
+
       <header className="login-header">
         <div className="logo-container">
           <img src={logo} alt="Уральские тропы" className="logo-image" />
         </div>
       </header>
 
-      {/* Основной контент */}
       <main className="login-content">
         <div className="login-form-container">
           <h1 className="login-title">Авторизация</h1>
-          
+
+          {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
+
           <form className="login-form" onSubmit={handleSubmit}>
-            {/* Поле Логин с плавающим лейблом */}
+
             <div className="input-container">
               <input
                 type="text"
                 className="form-input"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
-                placeholder=" " // Важно: пробел для работы кастомного placeholder
+                placeholder=" "
                 required
               />
               <label className="input-label">Логин</label>
             </div>
 
-            {/* Поле Пароль с плавающим лейблом */}
             <div className="input-container">
               <input
                 type="password"
                 className="form-input password-input"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder=" " // Важно: пробел для работы кастомного placeholder
+                placeholder=" "
                 required
               />
               <label className="input-label">Пароль</label>
             </div>
 
-            {/* Кнопка входа (теперь красная) */}
-            <button 
-              type="submit" 
-              className="login-button"
-            >
+            <button type="submit" className="login-button">
               Войти
             </button>
 
-            {/* Ссылка "Забыли пароль?" (теперь черная и подчеркнутая) */}
             <div className="text-center">
               <a href="#forgot" className="forgot-link">
                 Забыли пароль?
               </a>
             </div>
+
           </form>
         </div>
       </main>
+
     </div>
   );
 };
