@@ -83,8 +83,18 @@
 
 .login-header {
   padding: 20px 40px;
-  border-bottom: 1px solid #e0e0e0;
   background: white;
+  display: flex;
+  justify-content: flex-start; /* Строго слева */
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+  min-height: 70px;
+  width: 100%;
+}
+.login-header .logo-container {
+  position: absolute; /* Абсолютное позиционирование */
+  left: 40px; /* Отступ слева */
+  top: 35px; /* Отступ сверху */
 }
 
 .logo-container {

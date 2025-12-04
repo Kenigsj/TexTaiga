@@ -41,12 +41,13 @@ const LoginPage = () => {
 
   return (
     <div className="login-page">
-
-      <header className="login-header">
-        <div className="logo-container">
-          <img src={logo} alt="Уральские тропы" className="logo-image" />
-        </div>
-      </header>
+    {/* Шапка с логотипом - ТОЛЬКО логотип, без навбара */}
+    <header className="login-header">
+      <div className="logo-container">
+        <img src={logo} alt="Уральские тропы" className="logo-image" />
+      </div>
+      {/* Навбара здесь НЕТ */}
+    </header>
 
       <main className="login-content">
         <div className="login-form-container">
