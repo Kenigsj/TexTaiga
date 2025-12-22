@@ -15,6 +15,10 @@ public class Participant {
     private String firstName;
     private String lastName;
 
+    // здесь храню URL, по которому фронт может открыть картинку
     @Column(length = 5000)
     private String photoUrl;
+
+    // сюда записываю номер номинации (1..4)
+    private Integer nomination;
 }
