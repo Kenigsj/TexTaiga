@@ -91,6 +91,16 @@ const LoginPage = () => {
               </a>
             </div>
 
+            <div className="text-center mt-3">
+  <span className="text-muted">Нет аккаунта? </span>
+  <a href="/register" className="auth-link" onClick={(e) => {
+    e.preventDefault();
+    navigate('/register');
+  }}>
+    Зарегистрироваться
+  </a>
+</div>
+
           </form>
         </div>
       </main>

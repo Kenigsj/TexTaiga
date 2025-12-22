@@ -949,3 +949,82 @@
     height: 180px;
   }
 }
+
+/* Стили для страницы регистрации */
+
+/* Выбор роли */
+.role-selection {
+  margin: 25px 0;
+}
+
+.role-label {
+  display: block;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.role-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.role-button {
+  flex: 1;
+  background: transparent;
+  border: 1px solid #cccccc;
+  border-radius: 25px;
+  color: #333;
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.role-button.active {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+.role-button:hover:not(.active) {
+  background: #f0f0f0;
+  border-color: #999999;
+}
+
+/* Сообщение об ошибке */
+.error-message {
+  background: rgba(220, 53, 69, 0.1);
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 20px 0;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* Ссылка на авторизацию */
+.auth-link {
+  color: #dc3545;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* Адаптивность для выбора роли */
+@media (max-width: 480px) {
+  .role-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .role-button {
+    width: 100%;
+  }
+}
