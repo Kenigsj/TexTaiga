@@ -5,6 +5,7 @@ import logo from '../logo.png';
 import fon from '../fon.png';
 import './../App.css';
 
+
 const MainPage = () => {
   const navigate = useNavigate();
 
@@ -34,6 +35,14 @@ const MainPage = () => {
           <button className="nav-tab">Три урала</button>
           <button className="nav-tab">Спецпроекты</button>
         </nav>
+        
+        {/* Кнопка личного кабинета ВНЕ nav-tabs, справа */}
+        <button 
+          className="cabinet-nav-button" 
+          onClick={() => navigate('/cabinet')} // Меняем на navigate
+        >
+          Личный кабинет
+        </button>
       </header>
 
       {/* Основной контент с фоновым изображением */}

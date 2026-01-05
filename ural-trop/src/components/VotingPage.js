@@ -1,11 +1,12 @@
 // components/VotingPage.js
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import logo from '../logo.png';
 import photo from '../fon.png';
 import './../App.css';
 
 const VotingPage = () => {
+  const navigate = useNavigate();
   const [selectedRating, setSelectedRating] = useState(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -105,6 +106,12 @@ const VotingPage = () => {
           <button className="nav-tab">Три урала</button>
           <button className="nav-tab">Спецпроекты</button>
         </nav>
+        <button 
+          className="cabinet-nav-button" 
+          onClick={() => navigate('/cabinet')} // Меняем на navigate
+        >
+          Личный кабинет
+        </button>
       </header>
 
       {/* Основной контент */}
@@ -159,7 +166,7 @@ const VotingPage = () => {
         </div>
       </main>
 
-      {/* Модальное окно */}
+      {/* Модальное окно успешного голосования */}
       {showSuccessModal && (
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -172,7 +179,6 @@ const VotingPage = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

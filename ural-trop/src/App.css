@@ -1028,3 +1028,385 @@
     width: 100%;
   }
 }
+/* Все красные кнопки (жюри, загрузить, личный кабинет, назад) */
+.jury-page-button,
+.upload-button-below,
+.cabinet-nav-button,
+.delete-button-red {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+  white-space: nowrap;
+}
+
+.jury-page-button:hover,
+.upload-button-below:hover:not(:disabled),
+.cabinet-nav-button:hover,
+.delete-button-red:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+/* Специфичные стили для каждой кнопки */
+.cabinet-nav-button {
+  margin-left: 15px; /* Отступ от навбара */
+}
+
+.jury-page-button {
+  position: fixed;
+  top: 20px;
+  right: 40px;
+  z-index: 1000;
+}
+
+.upload-button-below:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Для мобильных */
+@media (max-width: 768px) {
+  .jury-page-button,
+  .cabinet-nav-button {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+  
+  .jury-page-button {
+    position: relative;
+    top: 0;
+    right: 0;
+    margin: 20px auto;
+    display: block;
+    width: 90%;
+    max-width: 300px;
+  }
+  
+  .cabinet-nav-button {
+    margin-left: 10px;
+  }
+}
+/* Стили для страницы личного кабинета */
+
+/* Заголовок страницы */
+.cabinet-page-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #333; /* Серо-черный цвет */
+  margin-bottom: 40px;
+  text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+}
+
+/* Карточка кабинета */
+.cabinet-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 40px;
+  margin-bottom: 40px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Заголовки секций */
+.section-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333; /* Серо-черный */
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+/* Текст для удаления аккаунта */
+.danger-text {
+  color: #333 !important; /* Серо-черный вместо красного */
+}
+
+/* Поля формы с подписями */
+.form-label-cabinet {
+  display: block;
+  font-weight: bold;
+  color: #333; /* Серо-черный */
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.form-input-cabinet {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.1rem;
+  border: 2px solid #cccccc;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  background: rgba(200, 200, 200, 0.7); /* Такие же как на странице загрузки */
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.form-input-cabinet::placeholder {
+  color: #666;
+  opacity: 0.9;
+}
+
+.form-input-cabinet:focus {
+  border-color: #667eea;
+  background: rgba(230, 230, 230, 0.9);
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  outline: none;
+}
+
+/* Кнопки внутри кабинета */
+.cabinet-action-button {
+  background: #667eea; /* Синяя как на сайте */
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.cabinet-action-button:hover {
+  background: #5a6fd8;
+  transform: translateY(-2px);
+}
+
+.cabinet-action-button.primary {
+  background: #28a745;
+}
+
+.cabinet-action-button.primary:hover {
+  background: #218838;
+}
+
+.cabinet-action-button.secondary {
+  background: #6c757d;
+}
+
+.cabinet-action-button.secondary:hover {
+  background: #5a6268;
+}
+
+/* Бейдж роли */
+.role-badge {
+  background: #667eea;
+  color: white;
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+/* Информация о пользователе */
+.user-info-section {
+  background: #f8f9fa;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 30px;
+  border: 1px solid #e0e0e0;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: bold;
+  color: #555; /* Темно-серый */
+}
+
+.info-value {
+  color: #333; /* Серо-черный */
+  font-weight: 500;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .cabinet-card {
+    padding: 20px;
+    margin: 0 15px;
+  }
+  
+  .cabinet-page-title {
+    font-size: 2rem;
+  }
+  
+  .section-title {
+    font-size: 1.3rem;
+  }
+  
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  
+  .form-input-cabinet {
+    padding: 12px;
+  }
+}
+/* Широкая карточка кабинета */
+.cabinet-card-wide {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  padding: 40px;
+  margin-bottom: 40px;
+  max-width: 800px; /* Шире чем было */
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Красная кнопка смены пароля */
+.change-password-button {
+  background: #dc3545; /* Красная как "Вы жюри?" */
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.change-password-button:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+/* Кнопка отмены */
+.cancel-button {
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.cancel-button:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+/* Используем те же поля что на странице загрузки */
+.form-control-below {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.1rem;
+  border: 2px solid #cccccc;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  background: rgba(200, 200, 200, 0.7); /* Серый полупрозрачный */
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.form-control-below::placeholder {
+  color: #666;
+  opacity: 0.9;
+}
+
+.form-control-below:focus {
+  border-color: #667eea;
+  background: rgba(230, 230, 230, 0.9);
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  outline: none;
+}
+
+/* Убираем старые стили полей */
+.form-input-cabinet,
+.form-label-cabinet {
+  display: none;
+}
+
+/* Группа формы */
+.form-group {
+  margin-bottom: 25px;
+  width: 100%;
+}
+
+/* Кнопки в форме */
+.form-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.form-buttons .change-password-button,
+.form-buttons .cancel-button,
+.form-buttons .delete-button-red {
+  margin-bottom: 0;
+  flex: 1;
+}
+
+/* Контейнер страницы */
+.cabinet-page-container {
+  max-width: 900px; /* Шире контейнер */
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 20px;
+}
+
+/* Остальные стили остаются как были */
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .cabinet-card-wide {
+    padding: 25px 20px;
+    margin: 0;
+  }
+  
+  .cabinet-page-container {
+    padding: 0 15px;
+  }
+  
+  .form-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .change-password-button,
+  .cancel-button,
+  .delete-button-red {
+    padding: 10px 20px;
+    font-size: 0.95rem;
+  }
+}
