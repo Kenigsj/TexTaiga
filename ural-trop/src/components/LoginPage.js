@@ -1,62 +1,44 @@
 // components/LoginPage.js
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../App';
 import logo from './../logo.png';
 import './../App.css';
 
 const LoginPage = () => {
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setUser } = useContext(UserContext);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    setError(""); // очищаем ошибку
-
-    try {
-      const response = await fetch(`http://localhost:8080/api/auth/login?login=${login}&password=${password}`, {
-    	method: "POST"
-      });
-
-      const token = await response.text();
-
-      if (token === "INVALID") {
-        setError("Неверный логин или пароль");
-        return;
-      }
-
-      // сохраняем токен в память браузера
-      localStorage.setItem("token", token);
-
-      // успешный вход
+    // Простая проверка - если поля не пустые, переходим на главную
+    if (login.trim() && password.trim()) {
+      // В реальном приложении здесь будет запрос к API для получения роли
+      // Сейчас используем заглушку: если логин содержит "moder", то модератор
+      const userRole = login.toLowerCase().includes('moder') ? 'moderation' : 'jury';
+      
+      // Сохраняем пользователя
+      setUser({ login, role: userRole });
+      
       navigate('/main');
-
-    } catch (err) {
-      console.error(err);
-      setError("Ошибка соединения с сервером");
     }
   };
 
   return (
     <div className="login-page">
-    {/* Шапка с логотипом - ТОЛЬКО логотип, без навбара */}
-    <header className="login-header">
-      <div className="logo-container">
-        <img src={logo} alt="Уральские тропы" className="logo-image" />
-      </div>
-      {/* Навбара здесь НЕТ */}
-    </header>
+      <header className="login-header">
+        <div className="logo-container">
+          <img src={logo} alt="Уральские тропы" className="logo-image" />
+        </div>
+      </header>
 
       <main className="login-content">
         <div className="login-form-container">
           <h1 className="login-title">Авторизация</h1>
-
-          {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
-
+          
           <form className="login-form" onSubmit={handleSubmit}>
-
             <div className="input-container">
               <input
                 type="text"
@@ -90,21 +72,19 @@ const LoginPage = () => {
                 Забыли пароль?
               </a>
             </div>
-
+            
             <div className="text-center mt-3">
-  <span className="text-muted">Нет аккаунта? </span>
-  <a href="/register" className="auth-link" onClick={(e) => {
-    e.preventDefault();
-    navigate('/register');
-  }}>
-    Зарегистрироваться
-  </a>
-</div>
-
+              <span className="text-muted">Нет аккаунта? </span>
+              <a href="/register" className="auth-link" onClick={(e) => {
+                e.preventDefault();
+                navigate('/register');
+              }}>
+                Зарегистрироваться
+              </a>
+            </div>
           </form>
         </div>
       </main>
-
     </div>
   );
 };

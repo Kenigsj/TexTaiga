@@ -1,6 +1,7 @@
 // components/RegistrationPage.js
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react'; // Добавляем useContext
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../App'; // Добавляем импорт
 import logo from './../logo.png';
 import './../App.css';
 
@@ -11,6 +12,7 @@ const RegistrationPage = () => {
   const [role, setRole] = useState('jury'); // По умолчанию "жюри"
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { setUser } = useContext(UserContext); // Добавляем получение setUser
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -32,14 +34,11 @@ const RegistrationPage = () => {
       return;
     }
 
-    // Заглушка регистрации
-    console.log('Регистрация:', { login, password, role });
+    // Сохраняем пользователя
+    setUser({ login, role });
     
-    // В реальном приложении здесь был бы запрос к API
-    alert(`Регистрация успешна! Роль: ${role === 'jury' ? 'Жюри' : 'Модерация'}`);
-    
-    // Перенаправляем на страницу авторизации
-    navigate('/login');
+    // Перенаправляем на главную
+    navigate('/main');
   };
 
   return (

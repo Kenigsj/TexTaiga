@@ -95,24 +95,23 @@ const VotingPage = () => {
 
       {/* Шапка */}
       <header className="voting-header">
-        <div className="logo-container">
-          <img src={logo} alt="Уральские тропы" className="logo-image" />
-        </div>
-
-        <nav className="nav-tabs">
-          <button className="nav-tab">Карта</button>
-          <button className="nav-tab">Маршруты</button>
-          <button className="nav-tab">Точки притяжения</button>
-          <button className="nav-tab">Три урала</button>
-          <button className="nav-tab">Спецпроекты</button>
-        </nav>
-        <button 
-          className="cabinet-nav-button" 
-          onClick={() => navigate('/cabinet')} // Меняем на navigate
-        >
-          Личный кабинет
-        </button>
-      </header>
+  <div className="logo-container">
+    <img src={logo} alt="Уральские тропы" className="logo-image" />
+  </div>
+  
+  <nav className="nav-tabs">
+    <button className="nav-tab">Карта</button>
+    <button className="nav-tab">Маршруты</button>
+    <button className="nav-tab">Точки притяжения</button>
+    <button className="nav-tab">Три урала</button>
+    <button className="nav-tab">Спецпроекты</button>
+  </nav>
+  
+  {/* Кнопка Личный кабинет */}
+  <button className="cabinet-nav-button" onClick={() => navigate('/cabinet')}>
+    Личный кабинет
+  </button>
+</header>
 
       {/* Основной контент */}
       <main className="voting-content">
