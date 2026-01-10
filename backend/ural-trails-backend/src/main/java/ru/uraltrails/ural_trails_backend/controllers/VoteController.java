@@ -1,7 +1,7 @@
 package ru.uraltrails.ural_trails_backend.controllers;
 
 import org.springframework.web.bind.annotation.*;
-import ru.uraltrails.ural_trails_backend.models.Vote;
+import ru.uraltrails.ural_trails_backend.models.User;
 import ru.uraltrails.ural_trails_backend.services.AuthService;
 import ru.uraltrails.ural_trails_backend.services.VoteService;
 
@@ -10,38 +10,26 @@ import ru.uraltrails.ural_trails_backend.services.VoteService;
 @CrossOrigin(origins = "http://localhost:3000")
 public class VoteController {
 
-    private final VoteService voteService;
-    private final AuthService authService;
+    private final VoteService votes;
+    private final AuthService auth;
 
-    public VoteController(VoteService voteService, AuthService authService) {
-        this.voteService = voteService;
-        this.authService = authService;
+    public VoteController(VoteService votes, AuthService auth) {
+        this.votes = votes;
+        this.auth = auth;
     }
 
     @PostMapping("/set")
-    public Object setVote(
+    public String setVote(
             @RequestHeader("Authorization") String token,
             @RequestParam Long participantId,
             @RequestParam Integer nomination,
             @RequestParam Integer score
     ) {
-        System.out.println(">>> VoteController called");
-        System.out.println("participantId = " + participantId);
-        System.out.println("nomination = " + nomination);
-        System.out.println("score = " + score);
-
-        // 1) проверяем токен
-        String login = authService.validate(token);
-        if (login == null) {
-            return "UNAUTHORIZED";
-        }
-
-        // 2) временно делаем juryId на основе login
-        Long juryId = (long) login.hashCode();
-
-        // 3) сохраняем в БД
-        voteService.addVote(juryId, participantId, nomination, score);
-
+        User u = auth.me(token);
+        if (u == null) return "UNAUTHORIZED";
+        if (!"jury".equals(u.getRole())) return "FORBIDDEN";
+        if (score == null || score < 1 || score > 10) return "INVALID_SCORE";
+        votes.addVote(u.getId(), participantId, nomination, score);
         return "OK";
     }
 }

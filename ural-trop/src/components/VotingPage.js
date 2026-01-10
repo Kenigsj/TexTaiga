@@ -1,4 +1,3 @@
-// components/VotingPage.js
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import logo from '../logo.png';
@@ -25,15 +24,15 @@ const VotingPage = () => {
     { id: 3, src: photo }
   ];
 
-  function getNominationNumber(cat) {
+  const getNominationNumber = (cat) => {
     switch (cat) {
-      case "best-photographer": return 1;
-      case "nomination-2": return 2;
-      case "nomination-3": return 3;
-      case "nomination-4": return 4;
+      case 'best-photographer': return 1;
+      case 'nomination-2': return 2;
+      case 'nomination-3': return 3;
+      case 'nomination-4': return 4;
       default: return 1;
     }
-  }
+  };
 
   const handleVote = async () => {
     if (selectedRating === 0) {
@@ -42,20 +41,20 @@ const VotingPage = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        alert("Ошибка: вы не авторизованы");
+        alert('Ошибка: вы не авторизованы');
         return;
       }
 
       const participantId = 1;
       const nomination = getNominationNumber(category);
 
-      const response = await fetch("http://localhost:8080/api/vote/set", {
-        method: "POST",
+      const response = await fetch('http://localhost:8080/api/vote/set', {
+        method: 'POST',
         headers: {
-          "Authorization": token,
-          "Content-Type": "application/x-www-form-urlencoded"
+          Authorization: token,
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
         body: new URLSearchParams({
           participantId,
@@ -66,24 +65,23 @@ const VotingPage = () => {
 
       const text = await response.text();
 
-      if (text === "OK") {
+      if (text === 'OK') {
         setShowSuccessModal(true);
       } else {
-        alert("Ошибка сервера: " + text);
+        alert('Ошибка сервера: ' + text);
       }
-
     } catch (err) {
       console.error(err);
-      alert("Не удалось отправить голосование");
+      alert('Не удалось отправить голосование');
     }
   };
 
   const handleNextPhoto = () => {
-    setCurrentPhotoIndex((prev) => (prev + 1) % photos.length);
+    setCurrentPhotoIndex(prev => (prev + 1) % photos.length);
   };
 
   const handlePrevPhoto = () => {
-    setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
+    setCurrentPhotoIndex(prev => (prev - 1 + photos.length) % photos.length);
   };
 
   const handleCloseModal = () => {
@@ -92,42 +90,34 @@ const VotingPage = () => {
 
   return (
     <div className="voting-page">
-
-      {/* Шапка */}
       <header className="voting-header">
-  <div className="logo-container">
-    <img src={logo} alt="Уральские тропы" className="logo-image" />
-  </div>
-  
-  <nav className="nav-tabs">
-    <button className="nav-tab">Карта</button>
-    <button className="nav-tab">Маршруты</button>
-    <button className="nav-tab">Точки притяжения</button>
-    <button className="nav-tab">Три урала</button>
-    <button className="nav-tab">Спецпроекты</button>
-  </nav>
-  
-  {/* Кнопка Личный кабинет */}
-  <button className="cabinet-nav-button" onClick={() => navigate('/cabinet')}>
-    Личный кабинет
-  </button>
-</header>
+        <div className="logo-container">
+          <img src={logo} alt="Уральские тропы" className="logo-image" />
+        </div>
 
-      {/* Основной контент */}
+        <nav className="nav-tabs">
+          <button className="nav-tab">Карта</button>
+          <button className="nav-tab">Маршруты</button>
+          <button className="nav-tab">Точки притяжения</button>
+          <button className="nav-tab">Три урала</button>
+          <button className="nav-tab">Спецпроекты</button>
+        </nav>
+
+        <button className="cabinet-nav-button" onClick={() => navigate('/cabinet')}>
+          Личный кабинет
+        </button>
+      </header>
+
       <main className="voting-content">
         <div className="voting-container">
-
-          {/* Заголовок номинации */}
           <div className="nomination-title-card">
             <h2 className="nomination-title-text">
               {nominationTitles[category] || 'Номинация'}
             </h2>
           </div>
 
-          {/* Имя участника */}
           <h3 className="participant-name">Алексей Сидоров</h3>
 
-          {/* Фото */}
           <div className="photo-section">
             <div className="photo-container">
               <button className="photo-arrow arrow-left" onClick={handlePrevPhoto}>‹</button>
@@ -142,7 +132,6 @@ const VotingPage = () => {
             </div>
           </div>
 
-          {/* Рейтинг */}
           <div className="rating-section">
             <div className="rating-numbers">
               {Array.from({ length: 10 }, (_, i) => i + 1).map(rating => (
@@ -157,15 +146,12 @@ const VotingPage = () => {
             </div>
           </div>
 
-          {/* Кнопка */}
           <button className="vote-button" onClick={handleVote}>
             Проголосовать
           </button>
-
         </div>
       </main>
 
-      {/* Модальное окно успешного голосования */}
       {showSuccessModal && (
         <div className="modal-overlay" onClick={handleCloseModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
