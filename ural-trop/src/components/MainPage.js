@@ -1,4 +1,3 @@
-// components/MainPage.js
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../App';
@@ -18,46 +17,31 @@ const MainPage = () => {
   ];
 
   const handleNominationClick = (path) => {
-  // В реальном приложении здесь будет проверка роли из контекста
-  // Для демо: если пользователь зарегистрировался как модератор,
-  // его логин скорее всего содержит "moder"
-  const userLogin = user?.login || '';
-  const isModerator = userLogin.toLowerCase().includes('moder') || user?.role === 'moderation';
-  
-  if (isModerator) {
-    navigate(`/moderate/${path}`);
-  } else {
-    navigate(`/vote/${path}`);
-  }
-};
+    if (user?.role === 'moderation') navigate(`/moderate/${path}`);
+    else navigate(`/vote/${path}`);
+  };
 
   return (
     <div className="nominations-page">
-      {/* Шапка с логотипом и навигацией */}
       <header className="nominations-header">
-  <div className="logo-container">
-    <img src={logo} alt="Уральские тропы" className="logo-image" />
-  </div>
-  
-  <nav className="nav-tabs">
-    <button className="nav-tab">Карта</button>
-    <button className="nav-tab">Маршруты</button>
-    <button className="nav-tab">Точки притяжения</button>
-    <button className="nav-tab">Три урала</button>
-    <button className="nav-tab">Спецпроекты</button>
-  </nav>
-  
-  {/* Кнопка Личный кабинет */}
-  <button className="cabinet-nav-button" onClick={() => navigate('/cabinet')}>
-    Личный кабинет
-  </button>
-</header>
+        <div className="logo-container">
+          <img src={logo} alt="Уральские тропы" className="logo-image" />
+        </div>
 
-      {/* Основной контент с фоновым изображением */}
-      <main 
-        className="nominations-content"
-        style={{ backgroundImage: `url(${fon})` }}
-      >
+        <nav className="nav-tabs">
+          <button className="nav-tab">Карта</button>
+          <button className="nav-tab">Маршруты</button>
+          <button className="nav-tab">Точки притяжения</button>
+          <button className="nav-tab">Три урала</button>
+          <button className="nav-tab">Спецпроекты</button>
+        </nav>
+
+        <button className="cabinet-nav-button" onClick={() => navigate('/cabinet')}>
+          Личный кабинет
+        </button>
+      </header>
+
+      <main className="nominations-content" style={{ backgroundImage: `url(${fon})` }}>
         <div className="nominations-container">
           <h1 className="nominations-title">
             НОМИНАЦИИ
@@ -65,10 +49,10 @@ const MainPage = () => {
               <span className="moderation-badge"> (Режим модерации)</span>
             )}
           </h1>
-          
+
           <div className="nominations-grid">
             {nominations.map((nomination) => (
-              <div 
+              <div
                 key={nomination.id}
                 className="nomination-item"
                 onClick={() => handleNominationClick(nomination.path)}

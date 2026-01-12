@@ -1,24 +1,24 @@
-// components/RegistrationPage.js
-import React, { useState, useContext } from 'react'; // Добавляем useContext
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserContext } from '../App'; // Добавляем импорт
+import { UserContext } from '../App';
 import logo from './../logo.png';
 import './../App.css';
+
+const API = "http://localhost:8080";
 
 const RegistrationPage = () => {
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('jury'); // По умолчанию "жюри"
+  const [role, setRole] = useState('jury');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { setUser } = useContext(UserContext); // Добавляем получение setUser
+  const { setUser } = useContext(UserContext);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Валидация
     if (!login.trim() || !password.trim() || !confirmPassword.trim()) {
       setError('Все поля обязательны для заполнения');
       return;
@@ -34,29 +34,57 @@ const RegistrationPage = () => {
       return;
     }
 
-    // Сохраняем пользователя
-    setUser({ login, role });
-    
-    // Перенаправляем на главную
-    navigate('/main');
+    try {
+      const res = await fetch(`${API}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ login, password, role })
+      });
+
+      const token = await res.text();
+      if (token === "INVALID") {
+        setError("Ошибка регистрации");
+        return;
+      }
+      if (token === "EXISTS") {
+        setError("Логин уже занят");
+        return;
+      }
+
+      localStorage.setItem("token", token);
+
+      const meRes = await fetch(`${API}/api/auth/me`, { headers: { Authorization: token } });
+      const meText = await meRes.text();
+      if (meText === "UNAUTHORIZED") {
+        setError("Ошибка авторизации");
+        return;
+      }
+
+      const me = JSON.parse(meText);
+      localStorage.setItem("userLogin", me.login);
+      localStorage.setItem("userRole", me.role);
+      localStorage.setItem("registeredDate", me.registeredDate);
+
+      setUser({ id: me.id, login: me.login, role: me.role, registeredDate: me.registeredDate });
+      navigate('/main');
+    } catch {
+      setError("Не удалось подключиться к серверу");
+    }
   };
 
   return (
     <div className="login-page">
-      {/* Шапка с логотипом */}
       <header className="login-header">
         <div className="logo-container">
           <img src={logo} alt="Уральские тропы" className="logo-image" />
         </div>
       </header>
 
-      {/* Основной контент */}
       <main className="login-content">
         <div className="login-form-container">
           <h1 className="login-title">Регистрация</h1>
-          
+
           <form className="login-form" onSubmit={handleSubmit}>
-            {/* Поле Логин */}
             <div className="input-container">
               <input
                 type="text"
@@ -69,7 +97,6 @@ const RegistrationPage = () => {
               <label className="input-label">Логин</label>
             </div>
 
-            {/* Поле Пароль */}
             <div className="input-container">
               <input
                 type="password"
@@ -82,7 +109,6 @@ const RegistrationPage = () => {
               <label className="input-label">Пароль</label>
             </div>
 
-            {/* Поле Подтверждение пароля */}
             <div className="input-container">
               <input
                 type="password"
@@ -95,7 +121,6 @@ const RegistrationPage = () => {
               <label className="input-label">Подтверждение пароля</label>
             </div>
 
-            {/* Выбор роли */}
             <div className="role-selection">
               <label className="role-label">Выберите роль:</label>
               <div className="role-buttons">
@@ -116,22 +141,12 @@ const RegistrationPage = () => {
               </div>
             </div>
 
-            {/* Сообщение об ошибке */}
-            {error && (
-              <div className="error-message">
-                {error}
-              </div>
-            )}
+            {error && <div className="error-message">{error}</div>}
 
-            {/* Кнопка регистрации */}
-            <button 
-              type="submit" 
-              className="login-button"
-            >
+            <button type="submit" className="login-button">
               Зарегистрироваться
             </button>
 
-            {/* Ссылка на авторизацию */}
             <div className="text-center mt-3">
               <span className="text-muted">Уже есть аккаунт? </span>
               <a href="/login" className="auth-link" onClick={(e) => {

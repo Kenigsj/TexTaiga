@@ -1,9 +1,10 @@
-// components/UploadPage.js
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../logo.png';
 import fon from '../image.png';
 import './../App.css';
+
+const API = "http://localhost:8080";
 
 const UploadPage = () => {
   const [file, setFile] = useState(null);
@@ -17,17 +18,13 @@ const UploadPage = () => {
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      processFile(selectedFile);
-    }
+    if (selectedFile) processFile(selectedFile);
   };
 
   const processFile = (selectedFile) => {
     setFile(selectedFile);
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result);
-    };
+    reader.onloadend = () => setPreview(reader.result);
     reader.readAsDataURL(selectedFile);
   };
 
@@ -44,7 +41,7 @@ const UploadPage = () => {
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile && droppedFile.type.startsWith('image/')) {
       processFile(droppedFile);
@@ -55,64 +52,54 @@ const UploadPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!file) {
-      alert('Пожалуйста, выберите фотографию');
-      return;
-    }
-    
-    if (!fio.trim()) {
-      alert('Пожалуйста, введите ФИО');
-      return;
-    }
-    
-    if (!email.trim()) {
-      alert('Пожалуйста, введите email');
-      return;
-    }
+
+    if (!file) return alert('Пожалуйста, выберите фотографию');
+    if (!fio.trim()) return alert('Пожалуйста, введите ФИО');
+    if (!email.trim()) return alert('Пожалуйста, введите email');
 
     setIsLoading(true);
     setUploadStatus(null);
 
-    // Заглушка вместо реальной отправки на сервер
-    setTimeout(() => {
-      console.log('Отправленные данные:', {
-        file: file.name,
-        fio,
-        email,
-        fileSize: file.size,
-        fileType: file.type
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("fio", fio);
+      form.append("email", email);
+
+      const res = await fetch(`${API}/api/public/upload`, {
+        method: "POST",
+        body: form
       });
-      
+
+      const text = await res.text();
+      if (text === "OK") {
+        setUploadStatus({ type: 'success', message: 'Фотография отправлена на модерацию!' });
+        setTimeout(() => {
+          setFile(null);
+          setPreview(null);
+          setFio('');
+          setEmail('');
+          setUploadStatus(null);
+        }, 2500);
+      } else {
+        setUploadStatus({ type: 'error', message: 'Ошибка сервера: ' + text });
+      }
+    } catch {
+      setUploadStatus({ type: 'error', message: 'Не удалось подключиться к серверу' });
+    } finally {
       setIsLoading(false);
-      setUploadStatus({
-        type: 'success',
-        message: 'Фотография успешно загружена! Данные сохранены в базе.'
-      });
-      
-      // Очистка формы через 3 секунды
-      setTimeout(() => {
-        setFile(null);
-        setPreview(null);
-        setFio('');
-        setEmail('');
-        setUploadStatus(null);
-      }, 3000);
-    }, 1500);
+    }
   };
 
-  const handleJuryRedirect = () => {
-    navigate('/login');
-  };
+  const handleJuryRedirect = () => navigate('/login');
 
   return (
     <div className="nominations-page">
-      {/* Шапка с логотипом и навигацией */}
       <header className="nominations-header">
         <div className="logo-container">
           <img src={logo} alt="Уральские тропы" className="logo-image" />
         </div>
-        
+
         <nav className="nav-tabs">
           <button className="nav-tab">Карта</button>
           <button className="nav-tab">Маршруты</button>
@@ -122,75 +109,59 @@ const UploadPage = () => {
         </nav>
       </header>
 
-      {/* Кнопка "Вы жюри?" в правом верхнем углу страницы */}
       <button className="jury-page-button" onClick={handleJuryRedirect}>
         Вы жюри?
       </button>
 
-      {/* Основной контент с фоновым изображением */}
-      <main 
-        className="nominations-content"
-        style={{ backgroundImage: `url(${fon})` }}
-      >
+      <main className="nominations-content" style={{ backgroundImage: `url(${fon})` }}>
         <div className="nominations-container">
           <h1 className="nominations-title">КОНКУРС ФОТОГРАФИЙ</h1>
-          
-          {/* Карточка только для загрузки фото (короткая) */}
-          <div className="upload-photo-card">
-  <div className="card-body">
-    {/* Область перетаскивания файла - УДАЛЕН ЗАГОЛОВОК */}
-    <div className="upload-section">
-      {/* УДАЛЕН ЗАГОЛОВОК: <h4 className="upload-section-title">Загрузите свою фотографию</h4> */}
-      
-      <div 
-        className={`drop-zone ${isDragging ? 'dragging' : ''} ${preview ? 'has-preview' : ''}`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => document.getElementById('fileInput').click()}
-        style={{ cursor: 'pointer' }}
-      >
-        <input
-          id="fileInput"
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          style={{ display: 'none' }}
-        />
-        
-        {preview ? (
-          <div className="preview-container">
-            <img 
-              src={preview} 
-              alt="Предпросмотр" 
-              className="preview-image"
-            />
-            <div className="preview-overlay">
-              <p className="mb-0">Нажмите или перетащите для замены</p>
-              <small>Файл: {file.name}</small>
-            </div>
-          </div>
-        ) : (
-          <div className="drop-zone-content">
-            <div className="upload-icon">
-              📸
-            </div>
-            <h5>Загрузите свою фотографию</h5> {/* Заголовок остается здесь внутри */}
-            <p className="drop-zone-text">Перетащите сюда изображение или нажмите для выбора</p>
-            <div className="mt-3">
-              <button className="select-file-button">
-                Выберите файл
-              </button>
-            </div>
-            <small className="file-types-text">Поддерживаются: JPG, PNG, GIF</small>
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-</div>
 
-          {/* Форма ввода данных (под карточкой, не на ней) */}
+          <div className="upload-photo-card">
+            <div className="card-body">
+              <div className="upload-section">
+                <div
+                  className={`drop-zone ${isDragging ? 'dragging' : ''} ${preview ? 'has-preview' : ''}`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => document.getElementById('fileInput').click()}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <input
+                    id="fileInput"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
+                  />
+
+                  {preview ? (
+                    <div className="preview-container">
+                      <img src={preview} alt="Предпросмотр" className="preview-image" />
+                      <div className="preview-overlay">
+                        <p className="mb-0">Нажмите или перетащите для замены</p>
+                        <small>Файл: {file.name}</small>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="drop-zone-content">
+                      <div className="upload-icon">📸</div>
+                      <h5>Загрузите свою фотографию</h5>
+                      <p className="drop-zone-text">Перетащите сюда изображение или нажмите для выбора</p>
+                      <div className="mt-3">
+                        <button className="select-file-button" type="button">
+                          Выберите файл
+                        </button>
+                      </div>
+                      <small className="file-types-text">Поддерживаются: JPG, PNG, GIF</small>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="upload-form-below">
             <div className="form-group-below">
               <input
@@ -217,17 +188,15 @@ const UploadPage = () => {
               </div>
             </div>
 
-            {/* Статус загрузки */}
             {uploadStatus && (
               <div className={`alert-message-below ${uploadStatus.type === 'success' ? 'success' : 'error'}`}>
                 {uploadStatus.message}
               </div>
             )}
 
-            {/* Кнопка загрузки */}
             <div className="upload-button-container-below">
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className="upload-button-below"
                 disabled={isLoading || !file}
               >
