@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../logo.png';
 import './../App.css';
 
@@ -7,35 +7,34 @@ const API = "http://localhost:8080";
 
 const VotingPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { category } = useParams();
   const [selectedRating, setSelectedRating] = useState(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [photos, setPhotos] = useState([]);
   const [error, setError] = useState('');
-  const { category } = useParams();
+  const [nominationTitle, setNominationTitle] = useState('');
+  const [nominationId, setNominationId] = useState(1);
 
-  const nominationTitles = {
-    'best-photographer': 'Лучший фотограф',
-    'nomination-2': '2 НОМИНАЦИЯ',
-    'nomination-3': '3 НОМИНАЦИЯ',
-    'nomination-4': '4 НОМИНАЦИЯ'
-  };
-
-  const nomination = useMemo(() => {
-    switch (category) {
-      case "best-photographer": return 1;
-      case "nomination-2": return 2;
-      case "nomination-3": return 3;
-      case "nomination-4": return 4;
-      default: return 1;
+  // Получаем данные из state навигации
+  useEffect(() => {
+    if (location.state) {
+      setNominationId(location.state.nominationId || 1);
+      setNominationTitle(location.state.nominationTitle || 'Номинация');
+    } else {
+      // Если state нет, пытаемся получить ID из category
+      const idFromCategory = category?.replace('nomination-', '');
+      setNominationId(parseInt(idFromCategory) || 1);
+      setNominationTitle(category ? `Номинация ${idFromCategory}` : 'Номинация');
     }
-  }, [category]);
+  }, [category, location.state]);
 
   const load = async () => {
     setError('');
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API}/api/participants?nomination=${nomination}`, {
+      const res = await fetch(`${API}/api/participants?nomination=${nominationId}`, {
         headers: { Authorization: token }
       });
       const text = await res.text();
@@ -44,7 +43,9 @@ const VotingPage = () => {
         return;
       }
       const data = JSON.parse(text);
-      const mapped = data.map(p => ({
+      // Фильтруем только одобренные фото для голосования
+      const approvedPhotos = data.filter(p => p.status === 'approved');
+      const mapped = approvedPhotos.map(p => ({
         id: p.id,
         src: p.photoUrl,
         fio: p.fio || ''
@@ -56,7 +57,11 @@ const VotingPage = () => {
     }
   };
 
-  useEffect(() => { load(); }, [nomination]);
+  useEffect(() => { 
+    if (nominationId) {
+      load(); 
+    }
+  }, [nominationId]);
 
   const handleVote = async () => {
     if (selectedRating === 0) {
@@ -86,7 +91,7 @@ const VotingPage = () => {
         },
         body: new URLSearchParams({
           participantId,
-          nomination,
+          nomination: nominationId,
           score: selectedRating
         })
       });
@@ -147,14 +152,16 @@ const VotingPage = () => {
         <div className="voting-container">
           <div className="nomination-title-card">
             <h2 className="nomination-title-text">
-              {nominationTitles[category] || 'Номинация'}
+              {nominationTitle}
             </h2>
           </div>
 
           {error && <div className="error-message">{error}</div>}
 
-          {!current ? (
-            <div className="error-message">Нет одобренных фотографий</div>
+          {!photos.length ? (
+            <div className="error-message">Нет одобренных фотографий для голосования</div>
+          ) : !current ? (
+            <div className="error-message">Нет данных о фотографии</div>
           ) : (
             <>
               <h3 className="participant-name">{current.fio || `Участник #${current.id}`}</h3>

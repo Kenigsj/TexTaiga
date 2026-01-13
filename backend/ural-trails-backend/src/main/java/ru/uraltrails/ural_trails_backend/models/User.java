@@ -1,8 +1,9 @@
 package ru.uraltrails.ural_trails_backend.models;
 
-
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "users")
@@ -18,4 +19,10 @@ public class User {
 
     @Column(nullable = false)
     private String password;
+
+    @Column(nullable = false)
+    private String role;
+
+    @Column(nullable = false)
+    private LocalDate registeredDate;
 }

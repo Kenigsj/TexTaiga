@@ -10,6 +10,7 @@ import UploadPage from './components/UploadPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import PersonalCabinetPage from './components/PersonalCabinetPage';
 import './App.css';
+import AdminCompetitionPage from './components/AdminCompetitionPage';
 
 export const UserContext = createContext();
 
@@ -73,6 +74,11 @@ function App() {
                 <ModerationPage />
               </ProtectedRoute>
             } />
+            <Route path="/admin/competition" element={
+  <ProtectedRoute>
+    <AdminCompetitionPage />
+  </ProtectedRoute>
+} />
           </Routes>
         </div>
       </Router>

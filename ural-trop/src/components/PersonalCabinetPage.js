@@ -176,6 +176,28 @@ const PersonalCabinetPage = () => {
               </div>
             </div>
 
+           
+{/* Секция администрирования */}
+<div className="admin-section">
+  <h3 className="section-title">Администрирование</h3>
+  
+  <div className="admin-buttons">
+    <button 
+      className="admin-button"
+      onClick={() => navigate('/register')}
+    >
+      Регистрация новых пользователей
+    </button>
+    
+    <button 
+      className="admin-button"
+      onClick={() => navigate('/admin/competition')}
+    >
+      Управление конкурсом
+    </button>
+  </div>
+</div>
+
             <div className="section">
               <h3 className="section-title">Смена пароля</h3>
 

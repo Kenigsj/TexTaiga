@@ -14,13 +14,7 @@ public class VoteService {
     }
 
     public Vote addVote(Long juryId, Long participantId, Integer nomination, Integer score) {
-
-        // ищем запись строго по 3 полям
-        Vote vote = voteRepository.findByJuryIdAndParticipantIdAndNomination(
-                juryId,
-                participantId,
-                nomination
-        );
+        Vote vote = voteRepository.findByJuryIdAndParticipantIdAndNomination(juryId, participantId, nomination);
 
         if (vote == null) {
             vote = new Vote();

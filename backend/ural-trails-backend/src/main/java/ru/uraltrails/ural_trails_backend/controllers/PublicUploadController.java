@@ -8,9 +8,9 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.uraltrails.ural_trails_backend.models.Participant;
 import ru.uraltrails.ural_trails_backend.repositories.ParticipantRepository;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
@@ -38,11 +38,9 @@ public class PublicUploadController {
         }
 
         try {
-            // я создаю папку, если её ещё нет
             Path dir = Path.of(uploadDir);
             Files.createDirectories(dir);
 
-            // я сохраняю файл под уникальным именем
             String original = file.getOriginalFilename() == null ? "photo" : file.getOriginalFilename();
             String ext = "";
             int dot = original.lastIndexOf('.');
@@ -53,26 +51,25 @@ public class PublicUploadController {
 
             file.transferTo(target.toFile());
 
-            // я разбиваю ФИО на имя/фамилию максимально просто
-            String[] parts = fio.trim().split("\\s+");
+            String safeFio = fio == null ? "" : fio.trim();
+            String[] parts = safeFio.isBlank() ? new String[0] : safeFio.split("\\s+");
             String lastName = parts.length >= 1 ? parts[0] : "";
             String firstName = parts.length >= 2 ? parts[1] : "";
 
             Participant p = new Participant();
             p.setFirstName(firstName);
             p.setLastName(lastName);
-
-            // я сохраняю URL, который откроет браузер
+            p.setFio(safeFio);
+            p.setEmail(email == null ? "" : email.trim());
             p.setPhotoUrl("http://localhost:8080/api/public/files/" + storedName);
-
-            // я отправляю все загрузки в 1 номинацию (Лучший фотограф)
             p.setNomination(1);
+            p.setStatus("pending");
+            p.setUploadedAt(LocalDateTime.now());
 
             participants.save(p);
 
             return "OK";
         } catch (Exception e) {
-            e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Ошибка сохранения файла");
         }
     }

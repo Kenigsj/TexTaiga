@@ -1,69 +1,81 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../App';
 import logo from './../logo.png';
 import fon from '../fon.png';
 import './../App.css';
 
+const API = "http://localhost:8080";
+
 const MainPage = () => {
+  const [nominations, setNominations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
 
-  const nominations = [
-    { id: 1, title: 'лучший фотограф', path: 'best-photographer' },
-    { id: 2, title: '2 НОМИНАЦИЯ', path: 'nomination-2' },
-    { id: 3, title: '3 НОМИНАЦИЯ', path: 'nomination-3' },
-    { id: 4, title: '4 НОМИНАЦИЯ', path: 'nomination-4' },
-  ];
+  useEffect(() => {
+    fetchNominations();
+  }, []);
 
-  const handleNominationClick = (path) => {
-    if (user?.role === 'moderation') navigate(`/moderate/${path}`);
-    else navigate(`/vote/${path}`);
+  const fetchNominations = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return navigate('/login');
+
+    try {
+      const res = await fetch(`${API}/api/nominations`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) throw new Error(await res.text());
+
+      const data = await res.json();
+      setNominations(
+        data.map(n => ({
+          id: n.id,
+          title: n.title
+        }))
+      );
+    } catch (err) {
+      console.error(err);
+      setError('Ошибка загрузки номинаций');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNominationClick = (id, title) => {
+    const base = user?.role === 'moderation' ? 'moderate' : 'vote';
+    navigate(`/${base}/nomination-${id}`, {
+      state: { nominationId: id, nominationTitle: title }
+    });
   };
 
   return (
     <div className="nominations-page">
       <header className="nominations-header">
-        <div className="logo-container">
-          <img src={logo} alt="Уральские тропы" className="logo-image" />
-        </div>
-
-        <nav className="nav-tabs">
-          <button className="nav-tab">Карта</button>
-          <button className="nav-tab">Маршруты</button>
-          <button className="nav-tab">Точки притяжения</button>
-          <button className="nav-tab">Три урала</button>
-          <button className="nav-tab">Спецпроекты</button>
-        </nav>
-
-        <button className="cabinet-nav-button" onClick={() => navigate('/cabinet')}>
+        <img src={logo} alt="Лого" className="logo-image" />
+        <button onClick={() => navigate('/cabinet')}>
           Личный кабинет
         </button>
       </header>
 
       <main className="nominations-content" style={{ backgroundImage: `url(${fon})` }}>
-        <div className="nominations-container">
-          <h1 className="nominations-title">
-            НОМИНАЦИИ
-            {user && user.role === 'moderation' && (
-              <span className="moderation-badge"> (Режим модерации)</span>
-            )}
-          </h1>
+        <h1>Номинации</h1>
 
-          <div className="nominations-grid">
-            {nominations.map((nomination) => (
-              <div
-                key={nomination.id}
-                className="nomination-item"
-                onClick={() => handleNominationClick(nomination.path)}
-              >
-                <p className="nomination-text">{nomination.title}</p>
-                {user && user.role === 'moderation' && (
-                  <p className="nomination-subtext">Нажмите для модерации</p>
-                )}
-              </div>
-            ))}
-          </div>
+        {loading && <p>Загрузка...</p>}
+        {error && <p className="error-message">{error}</p>}
+
+        <div className="nominations-grid">
+          {nominations.map(nom => (
+            <div
+              key={nom.id}
+              className="nomination-item"
+              onClick={() => handleNominationClick(nom.id, nom.title)}
+            >
+              {nom.title}
+            </div>
+          ))}
         </div>
       </main>
     </div>
