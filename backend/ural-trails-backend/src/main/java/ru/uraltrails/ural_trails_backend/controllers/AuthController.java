@@ -22,11 +22,17 @@ public class AuthController {
         return token;
     }
 
+    // Регистрация теперь доступна только админу
     @PostMapping("/register")
-    public String register(@RequestParam String login, @RequestParam String password, @RequestParam String role) {
-        String token = auth.register(login, password, role);
-        if (token == null) return "INVALID";
-        return token;
+    public String register(
+            @RequestHeader("Authorization") String token,
+            @RequestParam String login,
+            @RequestParam String password,
+            @RequestParam String role
+    ) {
+        String result = auth.register(token, login, password, role);
+        if (result == null) return "INVALID";
+        return result; // OK | EXISTS | FORBIDDEN | INVALID
     }
 
     @GetMapping("/me")

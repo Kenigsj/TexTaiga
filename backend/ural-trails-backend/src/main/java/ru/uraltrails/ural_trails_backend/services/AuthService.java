@@ -18,26 +18,33 @@ public class AuthService {
     }
 
     public String login(String login, String password) {
+        if (login == null || password == null) return null;
+
         User dbUser = users.findByLogin(login);
 
+        // 1) если пользователь есть в БД — проверяем пароль и выдаём токен
         if (dbUser != null) {
             if (!dbUser.getPassword().equals(password)) return null;
             return JwtUtil.generateToken(dbUser.getLogin(), dbUser.getRole());
         }
 
+        // 2) иначе проверяем хардкод (только admin) и при успехе создаём запись в БД
         if (!HardcodedUsers.isValid(login, password)) return null;
 
         User u = new User();
         u.setLogin(login);
         u.setPassword(password);
-        u.setRole(HardcodedUsers.roleOf(login));
+        u.setRole(HardcodedUsers.roleOf(login)); // admin
         u.setRegisteredDate(LocalDate.now());
         users.save(u);
 
-        return JwtUtil.generateToken(login, u.getRole());
+        return JwtUtil.generateToken(u.getLogin(), u.getRole());
     }
 
-    public String register(String login, String password, String role) {
+    // Регистрация должна быть доступна ТОЛЬКО админу (проверяем токен)
+    public String register(String token, String login, String password, String role) {
+        if (!isAdmin(token)) return "FORBIDDEN";
+
         if (login == null || login.isBlank()) return null;
         if (password == null || password.isBlank()) return null;
 
@@ -53,7 +60,9 @@ public class AuthService {
         u.setRegisteredDate(LocalDate.now());
         users.save(u);
 
-        return JwtUtil.generateToken(u.getLogin(), u.getRole());
+        // ВАЖНО: регистрируемого пользователя не логиним автоматически
+        // поэтому токен здесь не нужен
+        return "OK";
     }
 
     public String validate(String token) {
@@ -89,11 +98,18 @@ public class AuthService {
         return "OK";
     }
 
+    public boolean isAdmin(String token) {
+        String login = validate(token);
+        if (login == null) return false;
+        return "admin".equals(roleFromToken(token));
+    }
+
     private static String normalizeRole(String role) {
         if (role == null) return null;
         String r = role.trim().toLowerCase();
         if (r.equals("jury")) return "jury";
-        if (r.equals("moderation")) return "moderation";
+        if (r.equals("moderator")) return "moderator";
+        if (r.equals("admin")) return "admin";
         return null;
     }
 
