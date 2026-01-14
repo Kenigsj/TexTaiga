@@ -212,7 +212,7 @@ const VotingPage = () => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h1 className="modal-title">УРАЛЬСКИЕ ТРОПЫ</h1>
             <h2 className="modal-subtitle">Голосование</h2>
-            <p className="modal-message">Вы успешно проголосовали за фотографию!</p>
+            <p className="modal-message">Вы успешно проголосовали за фотографию</p>
             <button className="modal-close-button" onClick={handleCloseModal}>
               Закрыть
             </button>
