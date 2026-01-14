@@ -18,12 +18,6 @@ const PersonalCabinetPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Для управления учетными записями
-  const [showUserManagement, setShowUserManagement] = useState(false);
-  const [users, setUsers] = useState([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [errorUsers, setErrorUsers] = useState('');
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,32 +42,6 @@ const PersonalCabinetPage = () => {
     role: user?.role || localStorage.getItem('userRole') || '',
     registeredDate: user?.registeredDate || localStorage.getItem('registeredDate') || ''
   };
-
-  // Загрузка пользователей при открытии управления
-  useEffect(() => {
-    if (showUserManagement) {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      setLoadingUsers(true);
-      fetch(`${API}/api/admin/users`, { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => r.text())
-        .then(t => {
-          if (t === "UNAUTHORIZED") {
-            setErrorUsers("Нет доступа");
-            setLoadingUsers(false);
-            return;
-          }
-          const data = JSON.parse(t);
-          setUsers(Array.isArray(data) ? data : []);
-          setLoadingUsers(false);
-        })
-        .catch(() => {
-          setErrorUsers("Ошибка загрузки пользователей");
-          setLoadingUsers(false);
-        });
-    }
-  }, [showUserManagement]);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -155,12 +123,13 @@ const PersonalCabinetPage = () => {
         return;
       }
 
+
       localStorage.removeItem('userLogin');
       localStorage.removeItem('userRole');
       localStorage.removeItem('registeredDate');
       localStorage.removeItem('token');
       setUser(null);
-      navigate('/upload');
+      navigate('/login');
     } catch {
       setError("Не удалось подключиться к серверу");
       setShowDeleteConfirm(false);
@@ -169,6 +138,15 @@ const PersonalCabinetPage = () => {
 
   const handleBack = () => navigate(-1);
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userLogin');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('registeredDate');
+    setUser(null);
+    navigate('/login');
+  };
+
   return (
     <div className="nominations-page">
       <header className="nominations-header">
@@ -176,17 +154,19 @@ const PersonalCabinetPage = () => {
           <img src={logo} alt="Уральские тропы" className="logo-image" />
         </div>
 
-        <nav className="nav-tabs">
-          <button className="nav-tab">Карта</button>
-          <button className="nav-tab">Маршруты</button>
-          <button className="nav-tab">Точки притяжения</button>
-          <button className="nav-tab">Три урала</button>
-          <button className="nav-tab">Спецпроекты</button>
-        </nav>
+        <div className="header-buttons">
+          {/* Кнопка "Назад" нужна всем, кроме админа.
+              У админа личный кабинет по сути является главной страницей, назад ему идти некуда */}
+          {userData.role !== "admin" && (
+            <button className="cabinet-nav-button" onClick={handleBack}>
+              Назад
+            </button>
+          )}
 
-        <button className="cabinet-nav-button" onClick={handleBack}>
-          Назад
-        </button>
+          <button className="cabinet-nav-button" onClick={handleLogout}>
+            Выйти
+          </button>
+        </div>
       </header>
 
       <main className="nominations-content" style={{ backgroundImage: `url(${fon})` }}>
@@ -221,67 +201,33 @@ const PersonalCabinetPage = () => {
               </div>
             </div>
 
-            {/* Секция администрирования */}
+            {/* Администрирование */}
             {userData.role === "admin" && (
               <div className="admin-section">
                 <h3 className="section-title">Администрирование</h3>
-
                 <div className="admin-buttons">
-                  <button 
+                  <button
                     className="admin-button"
                     onClick={() => navigate('/register')}
                   >
                     Регистрация новых пользователей
                   </button>
-                  
-                  <button 
+                  <button
                     className="admin-button"
                     onClick={() => navigate('/admin/competition')}
                   >
                     Управление конкурсом
                   </button>
-
                   <button
-  className="admin-button"
-  onClick={() => navigate('/admin/users')}
->
-  Управление учетными записями
-</button>
-
+                    className="admin-button"
+                    onClick={() => navigate('/admin/users')}
+                  >
+                    Управление учетными записями
+                  </button>
                 </div>
-
-                {/* Таблица пользователей */}
-                {showUserManagement && (
-                  <div className="user-management-table">
-                    <h4 className="table-title">Список пользователей</h4>
-                    {loadingUsers ? (
-                      <p>Загрузка...</p>
-                    ) : errorUsers ? (
-                      <p className="error-message">{errorUsers}</p>
-                    ) : (
-                      <table className="table">
-                        <thead>
-                          <tr>
-                            <th>Логин</th>
-                            <th>Роль</th>
-                            <th>Дата регистрации</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {users.map(u => (
-                            <tr key={u.id}>
-                              <td>{u.login}</td>
-                              <td>{u.role}</td>
-                              <td>{u.registeredDate}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    )}
-                  </div>
-                )}
               </div>
             )}
+
 
             {/* Смена пароля */}
             <div className="section">
@@ -333,7 +279,11 @@ const PersonalCabinetPage = () => {
                     <button
                       type="button"
                       className="cancel-button"
-                      onClick={() => { setShowChangePassword(false); setError(''); setSuccess(''); }}
+                      onClick={() => {
+                        setShowChangePassword(false);
+                        setError('');
+                        setSuccess('');
+                      }}
                     >
                       Отмена
                     </button>
@@ -381,6 +331,7 @@ const PersonalCabinetPage = () => {
                 </div>
               )}
             </div>
+
 
             {error && <div className="message error">{error}</div>}
             {success && <div className="message success">{success}</div>}

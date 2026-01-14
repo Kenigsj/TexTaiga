@@ -1057,9 +1057,7 @@
 }
 
 /* Специфичные стили для каждой кнопки */
-.cabinet-nav-button {
-  margin-left: 15px; /* Отступ от навбара */
-}
+
 
 .jury-page-button {
   position: fixed;
@@ -1094,7 +1092,7 @@
   }
   
   .cabinet-nav-button {
-    margin-left: 10px;
+    
   }
 }
 /* Стили для страницы личного кабинета */
@@ -2000,13 +1998,9 @@
 .form-label-below {
   margin-bottom: 0px; /* чуть меньше, чтобы лейбл был ближе к полю, но не присасывался */
 }
-.user-management-table {
-  margin-top: 15px;
-  background: rgba(0,0,0,0.6);
-  padding: 15px;
-  border-radius: 12px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-  color: #fff;
+.user-management-table table {
+  background: white;
+  border-collapse: collapse;
 }
 
 .user-management-table .table-title {
@@ -2023,18 +2017,18 @@
 
 .user-management-table th,
 .user-management-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid #ccc;
-  color: #fff;
+  color: #222;               /* ЧЕРНЫЙ ТЕКСТ */
+  padding: 12px 16px;
   text-align: left;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .user-management-table th {
-  background: rgba(255,255,255,0.1);
+  font-weight: bold;
+  background: #f5f6fa;
 }
-
 .user-management-table tr:hover {
-  background: rgba(255,255,255,0.1);
+  background: #f0f2f5;
 }
 .user-management-table {
   margin-top: 15px;
@@ -2064,4 +2058,115 @@
 
 .user-management-table tr:hover {
   background: rgba(255,255,255,0.1);
+}
+.password-cell {
+  font-family: monospace;
+  color: #111;
+}
+.user-management-table,
+.user-management-table table,
+.user-management-table th,
+.user-management-table td {
+  color: #000 !important;
+}
+.header-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.logout-button {
+  background: linear-gradient(135deg, #dc3545, #b52a37);
+}
+
+.logout-button:hover {
+  background: linear-gradient(135deg, #c82333, #9f1f2a);
+  transform: translateY(-1px);
+}
+.nominations-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  position: relative;
+}
+
+.header-buttons-right {
+  display: flex;
+  gap: 10px;
+  margin-left: auto; /* вот это фиксирует их справа */
+}
+
+/* оставляем прежние стили кнопок без изменения */
+.cabinet-nav-button {
+  /* тут ничего не меняем, берется ваш стандартный стиль */
+}
+.nominations-header {
+  position: relative; /* нужно для абсолютного позиционирования кнопок */
+  padding: 10px 20px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+}
+
+.header-buttons {
+  position: absolute;
+  right: 20px; /* кнопки справа */
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 10px; /* расстояние между кнопками */
+}
+
+/* убрал любые изменения цвета и размера — кнопки сохраняют старый вид */
+.custom-select-container {
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-select-label {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.custom-select-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.custom-select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.custom-select-wrapper::after {
+  content: "▼";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 12px;
+  color: #333;
+}
+.cabinet-buttons {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 10px; /* расстояние между кнопками */
 }

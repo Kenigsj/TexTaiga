@@ -7,23 +7,43 @@ import './../App.css';
 const API = "http://localhost:8080";
 
 const RatingPage = () => {
+  const [nominations, setNominations] = useState([]);
+  const [selectedNomination, setSelectedNomination] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // Загружаем участников
-  const fetchParticipants = useCallback(async () => {
+  // Загружаем список номинаций
+  const fetchNominations = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return navigate('/login');
+
+      const res = await fetch(`${API}/api/nominations`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error(await res.text());
+
+      const data = await res.json();
+      setNominations(data);
+    } catch (err) {
+      console.error(err);
+      setError('Не удалось загрузить список номинаций');
+    }
+  }, [navigate]);
+
+  // Загружаем рейтинг участников выбранной номинации
+  const fetchParticipants = useCallback(async (nominationId) => {
     setLoading(true);
     setError('');
     try {
       const token = localStorage.getItem('token');
       if (!token) return navigate('/login');
 
-      const res = await fetch(`${API}/api/participants/rating`, {
+      const res = await fetch(`${API}/api/participants/rating?nomination=${nominationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
       if (!res.ok) throw new Error(await res.text());
 
       const data = await res.json();
@@ -38,8 +58,16 @@ const RatingPage = () => {
   }, [navigate]);
 
   useEffect(() => {
-    fetchParticipants();
-  }, [fetchParticipants]);
+    fetchNominations();
+  }, [fetchNominations]);
+
+  useEffect(() => {
+    if (selectedNomination) {
+      fetchParticipants(selectedNomination);
+    } else {
+      setParticipants([]);
+    }
+  }, [selectedNomination, fetchParticipants]);
 
   return (
     <div className="nominations-page">
@@ -48,48 +76,65 @@ const RatingPage = () => {
           <img src={logo} alt="Лого" className="logo-image" />
         </div>
 
-        <nav className="nav-tabs">
-          <button className="nav-tab">Карта</button>
-          <button className="nav-tab">Маршруты</button>
-          <button className="nav-tab">Точки притяжения</button>
-          <button className="nav-tab">Три урала</button>
-          <button className="nav-tab">Спецпроекты</button>
-        </nav>
-
-        {/* Кнопка назад вместо Рейтинг */}
-        <button className="cabinet-nav-button" onClick={() => navigate(-1)}>
-          Назад
-        </button>
+        <div className="cabinet-buttons" style={{ position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', display: 'flex', gap: '10px' }}>
+          <button className="cabinet-nav-button" onClick={() => navigate(-1)}>Назад</button>
+        </div>
       </header>
 
       <main className="nominations-content">
         <div className="nominations-container">
           <h1 className="nominations-title">РЕЙТИНГ УЧАСТНИКОВ</h1>
 
-          {loading && <div className="loading-message">Загрузка...</div>}
           {error && <div className="error-message">{error}</div>}
 
-          {!loading && !error && (
-            <table className="rating-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>ФИО</th>
-                  <th>Email</th>
-                  <th>Очки жюри</th>
-                </tr>
-              </thead>
-              <tbody>
-                {participants.map((p, index) => (
-                  <tr key={p.id}>
-                    <td>{index + 1}</td>
-                    <td>{p.fio}</td>
-                    <td>{p.email}</td>
-                    <td>{p.points}</td>
-                  </tr>
+          {/* Красивый выбор номинации */}
+          <div className="custom-select-container">
+            <label htmlFor="nomination-select" className="custom-select-label">Выберите номинацию:</label>
+            <div className="custom-select-wrapper">
+              <select
+                id="nomination-select"
+                className="custom-select"
+                value={selectedNomination || ''}
+                onChange={(e) => setSelectedNomination(e.target.value)}
+              >
+                <option value="">-- выбрать --</option>
+                {nominations.map(n => (
+                  <option key={n.id} value={n.id}>{n.title}</option>
                 ))}
-              </tbody>
-            </table>
+              </select>
+            </div>
+          </div>
+
+          {/* Таблица рейтинга */}
+          {loading && <div className="loading-message">Загрузка...</div>}
+          {!loading && selectedNomination && participants.length > 0 && (
+            <>
+              <h2 style={{ margin: '15px 0' }}>Номинация: {nominations.find(n => n.id === Number(selectedNomination))?.title}</h2>
+              <table className="rating-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>ФИО</th>
+                    <th>Email</th>
+                    <th>Очки жюри</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {participants.map((p, index) => (
+                    <tr key={p.id}>
+                      <td>{index + 1}</td>
+                      <td>{p.fio}</td>
+                      <td>{p.email}</td>
+                      <td>{p.points}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+
+          {!loading && selectedNomination && participants.length === 0 && (
+            <div>Нет участников для этой номинации</div>
           )}
         </div>
       </main>

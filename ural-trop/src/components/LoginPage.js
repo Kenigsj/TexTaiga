@@ -25,7 +25,8 @@ const LoginPage = () => {
       });
 
       const token = await res.text();
-      if (token === "INVALID") {
+
+      if (token === "INVALID" || !token || token.length < 10) {
         setError("Неверный логин или пароль");
         return;
       }
@@ -33,16 +34,18 @@ const LoginPage = () => {
       localStorage.setItem("token", token);
 
       const meRes = await fetch(`${API}/api/auth/me`, {
-        headers: { Authorization: token }
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       const meText = await meRes.text();
       if (meText === "UNAUTHORIZED") {
         setError("Ошибка авторизации");
+        localStorage.removeItem("token");
         return;
       }
 
       const me = JSON.parse(meText);
+
       localStorage.setItem("userLogin", me.login);
       localStorage.setItem("userRole", me.role);
       localStorage.setItem("registeredDate", me.registeredDate);
@@ -54,7 +57,7 @@ const LoginPage = () => {
       } else {
         navigate('/main');
       }
-    } catch (e2) {
+    } catch {
       setError("Не удалось подключиться к серверу");
     }
   };

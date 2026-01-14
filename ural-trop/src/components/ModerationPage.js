@@ -6,40 +6,45 @@ import './../App.css';
 const API = "http://localhost:8080";
 
 const ModerationPage = () => {
-  const [photos, setPhotos] = useState([]);
-  const [selectedPhoto, setSelectedPhoto] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [error, setError] = useState('');
-  const [nominationTitle, setNominationTitle] = useState('Номинация');
-  const [nominationId, setNominationId] = useState(1);
-  const [nominations, setNominations] = useState([]);
-  const [moveNominationId, setMoveNominationId] = useState(1);
-
   const navigate = useNavigate();
   const location = useLocation();
   const { category } = useParams();
 
-  // 1) Вытаскиваем nominationId/title из state (или из URL nomination-<id>)
+  const initialNominationId = (() => {
+    if (location.state?.nominationId) return Number(location.state.nominationId);
+    const idFromCategory = category?.replace('nomination-', '');
+    const parsed = parseInt(idFromCategory, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  })();
+
+  const [photos, setPhotos] = useState([]);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [error, setError] = useState('');
+  const [nominationTitle, setNominationTitle] = useState(location.state?.nominationTitle || 'Номинация');
+  const [nominationId, setNominationId] = useState(initialNominationId);
+  const [nominations, setNominations] = useState([]);
+  const [moveNominationId, setMoveNominationId] = useState(initialNominationId || 1);
+
   useEffect(() => {
     if (location.state) {
-      const id = location.state.nominationId || 1;
+      const id = location.state.nominationId || null;
       const title = location.state.nominationTitle || 'Номинация';
       setNominationId(id);
       setNominationTitle(title);
-      setMoveNominationId(id);
+      setMoveNominationId(id || 1);
       return;
     }
 
     const idFromCategory = category?.replace('nomination-', '');
     const parsed = parseInt(idFromCategory, 10);
-    const id = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+    const id = Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 
     setNominationId(id);
-    setNominationTitle(`Номинация ${id}`);
-    setMoveNominationId(id);
+    setNominationTitle(id ? `Номинация ${id}` : 'Номинация');
+    setMoveNominationId(id || 1);
   }, [category, location.state]);
 
-  // 2) Грузим справочник номинаций (для нормального заголовка + выбора)
   const fetchNominations = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
@@ -54,17 +59,20 @@ const ModerationPage = () => {
       const data = await res.json();
       setNominations(Array.isArray(data) ? data : []);
 
-      // если мы сюда попали без state — подменим "Номинация 2" на реальный title
       const found = (Array.isArray(data) ? data : []).find(n => Number(n.id) === Number(nominationId));
       if (found && found.title) setNominationTitle(found.title);
     } catch {
-      // молча, не критично
     }
   }, [nominationId]);
 
-  // 3) Грузим участников по номинации
   const load = useCallback(async () => {
     setError('');
+
+    if (!nominationId) {
+      setPhotos([]);
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -73,9 +81,8 @@ const ModerationPage = () => {
       }
 
       const res = await fetch(`${API}/api/participants?nomination=${nominationId}`, {
-  headers: { Authorization: `Bearer ${token}` }
-});
-
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
       const text = await res.text();
       if (text === "UNAUTHORIZED") {
@@ -103,12 +110,12 @@ const ModerationPage = () => {
   }, [fetchNominations]);
 
   useEffect(() => {
-    if (nominationId) load();
-  }, [nominationId, load]);
+    load();
+  }, [load]);
 
   const handlePhotoClick = (photo) => {
     setSelectedPhoto(photo);
-    setMoveNominationId(photo.nomination || nominationId);
+    setMoveNominationId(photo.nomination || nominationId || 1);
     setIsModalOpen(true);
   };
 
@@ -117,27 +124,28 @@ const ModerationPage = () => {
     setSelectedPhoto(null);
   };
 
-
   const postModeration = async (id, action) => {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API}/api/moderation/participant/${id}/${action}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
-
       });
+
       const text = await res.text();
+
+
       if (text === "OK") {
-  setPhotos(prev =>
-    prev.map(p =>
-      p.id === id
-        ? { ...p, status: action === "approve" ? "approved" : "rejected" }
-        : p
-    )
-  );
-  setIsModalOpen(false);
-  return;
-}
+        setPhotos(prev =>
+          prev.map(p =>
+            p.id === id
+              ? { ...p, status: action === "approve" ? "approved" : "rejected" }
+              : p
+          )
+        );
+        setIsModalOpen(false);
+        return;
+      }
 
       alert("Ошибка: " + text);
     } catch {
@@ -151,19 +159,20 @@ const ModerationPage = () => {
       const res = await fetch(`${API}/api/moderation/participant/${id}/set-nomination?nomination=${newNomId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
-
       });
+
       const text = await res.text();
+
       if (text === "OK") {
-  setPhotos(prev =>
-    prev.map(p =>
-      p.id === id
-        ? { ...p, nomination: newNomId }
-        : p
-    )
-  );
-  return;
-}
+        setPhotos(prev =>
+          prev.map(p =>
+            p.id === id
+              ? { ...p, nomination: newNomId }
+              : p
+          )
+        );
+        return;
+      }
 
       alert("Ошибка: " + text);
     } catch {
@@ -205,11 +214,6 @@ const ModerationPage = () => {
         </div>
 
         <nav className="nav-tabs">
-          <button className="nav-tab">Карта</button>
-          <button className="nav-tab">Маршруты</button>
-          <button className="nav-tab">Точки притяжения</button>
-          <button className="nav-tab">Три урала</button>
-          <button className="nav-tab">Спецпроекты</button>
         </nav>
 
         <button className="cabinet-nav-button" onClick={() => navigate('/cabinet')}>

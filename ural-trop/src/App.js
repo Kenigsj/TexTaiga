@@ -122,8 +122,14 @@ function App() {
     </ProtectedRoute>
   }
 />
-<Route path="/admin/users" element={<UserManagementPage />} />
-
+<Route
+  path="/admin/users"
+  element={
+    <ProtectedRoute requiredRole="admin">
+      <UserManagementPage />
+    </ProtectedRoute>
+  }
+/>
         </Routes>
       </Router>
     </UserContext.Provider>

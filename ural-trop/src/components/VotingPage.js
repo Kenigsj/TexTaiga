@@ -10,27 +10,44 @@ const VotingPage = () => {
   const location = useLocation();
   const { category } = useParams();
 
+  const initialNominationId = (() => {
+    if (location.state?.nominationId) return Number(location.state.nominationId);
+    const idFromCategory = category?.replace('nomination-', '');
+    const parsed = parseInt(idFromCategory, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  })();
+
   const [selectedRating, setSelectedRating] = useState(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [photos, setPhotos] = useState([]);
   const [error, setError] = useState('');
-  const [nominationTitle, setNominationTitle] = useState('');
-  const [nominationId, setNominationId] = useState(1);
+  const [nominationTitle, setNominationTitle] = useState(location.state?.nominationTitle || 'Номинация');
+  const [nominationId, setNominationId] = useState(initialNominationId);
 
   useEffect(() => {
     if (location.state) {
-      setNominationId(location.state.nominationId || 1);
+      setNominationId(location.state.nominationId || null);
       setNominationTitle(location.state.nominationTitle || 'Номинация');
-    } else {
-      const idFromCategory = category?.replace('nomination-', '');
-      setNominationId(parseInt(idFromCategory) || 1);
-      setNominationTitle(category ? `Номинация ${idFromCategory}` : 'Номинация');
+      return;
     }
+
+    const idFromCategory = category?.replace('nomination-', '');
+    const parsed = parseInt(idFromCategory, 10);
+    const id = Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+
+    setNominationId(id);
+    setNominationTitle(id ? `Номинация ${id}` : 'Номинация');
   }, [category, location.state]);
 
   const load = useCallback(async () => {
     setError('');
+
+    if (!nominationId) {
+      setPhotos([]);
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API}/api/participants?nomination=${nominationId}`, {
@@ -44,7 +61,7 @@ const VotingPage = () => {
       }
 
       const data = JSON.parse(text);
-      const approvedPhotos = data.filter(p => p.status === 'approved');
+      const approvedPhotos = (Array.isArray(data) ? data : []).filter(p => p.status === 'approved');
       const mapped = approvedPhotos.map(p => ({
         id: p.id,
         src: p.photoUrl,
@@ -60,8 +77,8 @@ const VotingPage = () => {
   }, [navigate, nominationId]);
 
   useEffect(() => {
-    if (nominationId) load();
-  }, [load, nominationId]);
+    load();
+  }, [load]);
 
   const handleVote = async () => {
     if (selectedRating === 0) {
@@ -125,9 +142,9 @@ const VotingPage = () => {
     handleNextPhoto();
   };
 
+
   const current = photos.length ? photos[currentPhotoIndex] : null;
 
-  // Новая функция для перехода на рейтинг
   const handleRating = () => navigate('/rating');
 
   return (
@@ -138,11 +155,6 @@ const VotingPage = () => {
         </div>
 
         <nav className="nav-tabs">
-          <button className="nav-tab">Карта</button>
-          <button className="nav-tab">Маршруты</button>
-          <button className="nav-tab">Точки притяжения</button>
-          <button className="nav-tab">Три урала</button>
-          <button className="nav-tab">Спецпроекты</button>
         </nav>
 
         <div className="cabinet-buttons">

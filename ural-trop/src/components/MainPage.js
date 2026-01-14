@@ -60,29 +60,25 @@ const MainPage = () => {
           <img src={logo} alt="Уральские тропы" className="logo-image" />
         </div>
 
-        <nav className="nav-tabs">
-          <button className="nav-tab">Карта</button>
-          <button className="nav-tab">Маршруты</button>
-          <button className="nav-tab">Точки притяжения</button>
-          <button className="nav-tab">Три урала</button>
-          <button className="nav-tab">Спецпроекты</button>
-        </nav>
+        <nav className="nav-tabs">{/* пусто */}</nav>
 
-        <div className="header-buttons">
-  <button
-    className="cabinet-nav-button"
-    onClick={() => navigate('/rating')}
-  >
-    Рейтинг
-  </button>
+        <div className="header-buttons-right">
+          {user?.role === 'jury' && (
+            <button
+              className="cabinet-nav-button"
+              onClick={() => navigate('/rating')}
+            >
+              Рейтинг
+            </button>
+          )}
 
-  <button
-    className="cabinet-nav-button"
-    onClick={() => navigate('/cabinet')}
-  >
-    Личный кабинет
-  </button>
-</div>
+          <button
+            className="cabinet-nav-button"
+            onClick={() => navigate('/cabinet')}
+          >
+            Личный кабинет
+          </button>
+        </div>
       </header>
 
       <main className="nominations-content" style={{ backgroundImage: `url(${fon})` }}>
