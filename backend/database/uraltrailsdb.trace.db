@@ -2,3 +2,19 @@
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Синтаксическая ошибка в выражении SQL "[*]SEKECT * FROM votes"; ожидалось "SAVEPOINT, SCRIPT, SHUTDOWN"
 Syntax error in SQL statement "[*]SEKECT * FROM votes"; expected "SAVEPOINT, SCRIPT, SHUTDOWN"; SQL statement:
 SEKECT * FROM votes [42001-232]
+2026-01-12 21:01:33.333660+05:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Синтаксическая ошибка в выражении SQL "SELECT * FROM VOTES USERS [*]USERS PHOTOS PARTICIPANTS"
+Syntax error in SQL statement "SELECT * FROM VOTES USERS [*]USERS PHOTOS PARTICIPANTS"; SQL statement:
+SELECT * FROM VOTES USERS USERS PHOTOS PARTICIPANTS [42000-232]
+2026-01-12 21:01:39.348775+05:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Синтаксическая ошибка в выражении SQL "SELECT * FROM VOTES USERS [*]PHOTOS PARTICIPANTS"
+Syntax error in SQL statement "SELECT * FROM VOTES USERS [*]PHOTOS PARTICIPANTS"; SQL statement:
+SELECT * FROM VOTES USERS PHOTOS PARTICIPANTS [42000-232]
+2026-01-12 21:01:57.138426+05:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Синтаксическая ошибка в выражении SQL "SELECT * FROM PHOTOS USERS [*]VOTES"
+Syntax error in SQL statement "SELECT * FROM PHOTOS USERS [*]VOTES"; SQL statement:
+SELECT * FROM PHOTOS USERS VOTES [42000-232]
+2026-01-14 03:33:58.010276+05:00 jdbc[13]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Синтаксическая ошибка в выражении SQL "[*]USERS"; ожидалось "UPDATE"
+Syntax error in SQL statement "[*]USERS"; expected "UPDATE"; SQL statement:
+USERS [42001-232]

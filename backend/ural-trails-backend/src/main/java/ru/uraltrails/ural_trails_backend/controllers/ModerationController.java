@@ -41,6 +41,7 @@ public class ModerationController {
     private boolean isModerator(String token) {
         String login = auth.validate(token);
         if (login == null) return false;
-        return "moderation".equals(auth.roleFromToken(token));
+        String role = auth.roleFromToken(token);
+        return "moderator".equals(role);
     }
 }

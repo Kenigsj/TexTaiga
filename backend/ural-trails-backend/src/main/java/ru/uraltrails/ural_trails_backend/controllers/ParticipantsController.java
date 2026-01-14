@@ -1,11 +1,8 @@
 package ru.uraltrails.ural_trails_backend.controllers;
 
 import org.springframework.web.bind.annotation.*;
-import ru.uraltrails.ural_trails_backend.models.Participant;
 import ru.uraltrails.ural_trails_backend.repositories.ParticipantRepository;
 import ru.uraltrails.ural_trails_backend.services.AuthService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/participants")
@@ -29,10 +26,13 @@ public class ParticipantsController {
         if (login == null) return "UNAUTHORIZED";
 
         String role = auth.roleFromToken(token);
-        if ("moderation".equals(role)) {
+
+        // admin и moderator видят всё
+        if ("admin".equals(role) || "moderator".equals(role)) {
             return participants.findByNomination(nomination);
         }
 
+        // jury видит только одобренные
         return participants.findByNominationAndStatus(nomination, "approved");
     }
 }
