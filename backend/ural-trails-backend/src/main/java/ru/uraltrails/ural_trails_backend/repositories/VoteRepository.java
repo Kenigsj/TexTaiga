@@ -11,7 +11,7 @@ public interface VoteRepository extends JpaRepository<Vote, Long> {
     List<Vote> findByJuryId(Long juryId);
     List<Vote> findByNomination(Integer nomination);
 
-    // искать ОДНУ конкретную оценку:
+    // Ищу одну конкретную оценку:
     // Жюри X → Участник Y → Номинация Z
     Vote findByJuryIdAndParticipantIdAndNomination(Long juryId, Long participantId, Integer nomination);
 }

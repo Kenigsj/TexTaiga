@@ -19,19 +19,29 @@ public class PublicFilesController {
     @GetMapping("/{fileName}")
     public ResponseEntity<Resource> getFile(@PathVariable String fileName) {
 
+        // собираем полный путь до файла из папки загрузок и имени файла
         Path filePath = Path.of(uploadDir).resolve(fileName).normalize();
         FileSystemResource resource = new FileSystemResource(filePath);
 
+        // если файла реально нет на диске — сразу 404, без лишних попыток
         if (!resource.exists()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
+        // по умолчанию считаем, что это просто бинарный файл
         MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
-        String lower = fileName.toLowerCase();
-        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) mediaType = MediaType.IMAGE_JPEG;
-        else if (lower.endsWith(".png")) mediaType = MediaType.IMAGE_PNG;
-        else if (lower.endsWith(".gif")) mediaType = MediaType.IMAGE_GIF;
 
+        // по расширению пытаемся понять, что это картинка, чтобы браузер нормально её показал
+        String lower = fileName.toLowerCase();
+        if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
+            mediaType = MediaType.IMAGE_JPEG;
+        } else if (lower.endsWith(".png")) {
+            mediaType = MediaType.IMAGE_PNG;
+        } else if (lower.endsWith(".gif")) {
+            mediaType = MediaType.IMAGE_GIF;
+        }
+
+        // возвращаем файл как ресурс, с правильным типом контента
         return ResponseEntity.ok()
                 .contentType(mediaType)
                 .body(resource);
