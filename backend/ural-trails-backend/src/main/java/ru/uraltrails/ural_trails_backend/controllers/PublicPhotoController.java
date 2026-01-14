@@ -24,21 +24,30 @@ public class PublicPhotoController {
 
     @GetMapping("/photo/{id}")
     public ResponseEntity<Resource> getPhoto(@PathVariable Long id) throws Exception {
+
+        // сначала ищем запись о фото в базе, без неё вообще нет смысла идти в файловую систему
         Photo photo = photoRepository.findById(id).orElse(null);
         if (photo == null) {
             return ResponseEntity.notFound().build();
         }
 
+        // из БД берём путь к файлу и проверяем, что файл реально существует
         Path path = Path.of(photo.getFilePath());
         if (!Files.exists(path)) {
             return ResponseEntity.notFound().build();
         }
 
+        // пробуем определить тип файла автоматически, чтобы браузер понял, что это за формат
         String contentType = Files.probeContentType(path);
-        if (contentType == null) contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        if (contentType == null) {
+            // если вдруг не получилось определить, отдаём как обычный бинарный файл
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
 
+        // оборачиваем файл в Resource, чтобы Spring мог нормально его отдать клиенту
         Resource resource = new FileSystemResource(path.toFile());
 
+        // возвращаем сам файл + правильный Content-Type
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(resource);
