@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../logo.png';
 import './../App.css';
@@ -9,6 +9,7 @@ const VotingPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { category } = useParams();
+
   const [selectedRating, setSelectedRating] = useState(0);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -17,51 +18,50 @@ const VotingPage = () => {
   const [nominationTitle, setNominationTitle] = useState('');
   const [nominationId, setNominationId] = useState(1);
 
-  // Получаем данные из state навигации
   useEffect(() => {
     if (location.state) {
       setNominationId(location.state.nominationId || 1);
       setNominationTitle(location.state.nominationTitle || 'Номинация');
     } else {
-      // Если state нет, пытаемся получить ID из category
       const idFromCategory = category?.replace('nomination-', '');
       setNominationId(parseInt(idFromCategory) || 1);
       setNominationTitle(category ? `Номинация ${idFromCategory}` : 'Номинация');
     }
   }, [category, location.state]);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setError('');
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API}/api/participants?nomination=${nominationId}`, {
-        headers: { Authorization: token }
+        headers: { Authorization: `Bearer ${token}` }
       });
+
       const text = await res.text();
       if (text === "UNAUTHORIZED") {
         navigate("/login");
         return;
       }
+
       const data = JSON.parse(text);
-      // Фильтруем только одобренные фото для голосования
       const approvedPhotos = data.filter(p => p.status === 'approved');
       const mapped = approvedPhotos.map(p => ({
         id: p.id,
         src: p.photoUrl,
         fio: p.fio || ''
       }));
+
       setPhotos(mapped);
       setCurrentPhotoIndex(0);
+      setSelectedRating(0);
     } catch {
       setError("Не удалось загрузить фотографии");
     }
-  };
+  }, [navigate, nominationId]);
 
-  useEffect(() => { 
-    if (nominationId) {
-      load(); 
-    }
-  }, [nominationId]);
+  useEffect(() => {
+    if (nominationId) load();
+  }, [load, nominationId]);
 
   const handleVote = async () => {
     if (selectedRating === 0) {
@@ -86,7 +86,7 @@ const VotingPage = () => {
       const response = await fetch(`${API}/api/vote/set`, {
         method: "POST",
         headers: {
-          "Authorization": token,
+          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/x-www-form-urlencoded"
         },
         body: new URLSearchParams({
@@ -103,8 +103,7 @@ const VotingPage = () => {
       } else {
         alert("Ошибка сервера: " + text);
       }
-
-    } catch (err) {
+    } catch {
       alert("Не удалось отправить голосование");
     }
   };
@@ -128,6 +127,9 @@ const VotingPage = () => {
 
   const current = photos.length ? photos[currentPhotoIndex] : null;
 
+  // Новая функция для перехода на рейтинг
+  const handleRating = () => navigate('/rating');
+
   return (
     <div className="voting-page">
       <header className="voting-header">
@@ -143,17 +145,20 @@ const VotingPage = () => {
           <button className="nav-tab">Спецпроекты</button>
         </nav>
 
-        <button className="cabinet-nav-button" onClick={() => navigate('/cabinet')}>
-          Личный кабинет
-        </button>
+        <div className="cabinet-buttons">
+          <button className="cabinet-nav-button" onClick={handleRating}>
+            Рейтинг
+          </button>
+          <button className="cabinet-nav-button" onClick={() => navigate('/cabinet')}>
+            Личный кабинет
+          </button>
+        </div>
       </header>
 
       <main className="voting-content">
         <div className="voting-container">
           <div className="nomination-title-card">
-            <h2 className="nomination-title-text">
-              {nominationTitle}
-            </h2>
+            <h2 className="nomination-title-text">{nominationTitle}</h2>
           </div>
 
           {error && <div className="error-message">{error}</div>}

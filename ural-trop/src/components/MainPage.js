@@ -15,7 +15,12 @@ const MainPage = () => {
   const { user } = useContext(UserContext);
 
   useEffect(() => {
+    if (user?.role === "admin") {
+      navigate('/cabinet');
+      return;
+    }
     fetchNominations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchNominations = async () => {
@@ -30,12 +35,7 @@ const MainPage = () => {
       if (!res.ok) throw new Error(await res.text());
 
       const data = await res.json();
-      setNominations(
-        data.map(n => ({
-          id: n.id,
-          title: n.title
-        }))
-      );
+      setNominations(data.map(n => ({ id: n.id, title: n.title })));
     } catch (err) {
       console.error(err);
       setError('Ошибка загрузки номинаций');
@@ -45,37 +45,75 @@ const MainPage = () => {
   };
 
   const handleNominationClick = (id, title) => {
-    const base = user?.role === 'moderation' ? 'moderate' : 'vote';
+    const base = user?.role === 'moderator' ? 'moderate' : 'vote';
     navigate(`/${base}/nomination-${id}`, {
       state: { nominationId: id, nominationTitle: title }
     });
   };
 
+  if (user?.role === "admin") return null;
+
   return (
     <div className="nominations-page">
       <header className="nominations-header">
-        <img src={logo} alt="Лого" className="logo-image" />
-        <button onClick={() => navigate('/cabinet')}>
-          Личный кабинет
-        </button>
+        <div className="logo-container">
+          <img src={logo} alt="Уральские тропы" className="logo-image" />
+        </div>
+
+        <nav className="nav-tabs">
+          <button className="nav-tab">Карта</button>
+          <button className="nav-tab">Маршруты</button>
+          <button className="nav-tab">Точки притяжения</button>
+          <button className="nav-tab">Три урала</button>
+          <button className="nav-tab">Спецпроекты</button>
+        </nav>
+
+        <div className="header-buttons">
+  <button
+    className="cabinet-nav-button"
+    onClick={() => navigate('/rating')}
+  >
+    Рейтинг
+  </button>
+
+  <button
+    className="cabinet-nav-button"
+    onClick={() => navigate('/cabinet')}
+  >
+    Личный кабинет
+  </button>
+</div>
       </header>
 
       <main className="nominations-content" style={{ backgroundImage: `url(${fon})` }}>
-        <h1>Номинации</h1>
+        <div className="nominations-container">
+          <h1 className="nominations-title">
+            НОМИНАЦИИ
+            {user?.role === 'moderator' && (
+              <span className="moderation-badge"> (Режим модерации)</span>
+            )}
+          </h1>
 
-        {loading && <p>Загрузка...</p>}
-        {error && <p className="error-message">{error}</p>}
-
-        <div className="nominations-grid">
-          {nominations.map(nom => (
-            <div
-              key={nom.id}
-              className="nomination-item"
-              onClick={() => handleNominationClick(nom.id, nom.title)}
-            >
-              {nom.title}
+          {loading ? (
+            <div className="loading-message">Загрузка...</div>
+          ) : error ? (
+            <div className="error-message">{error}</div>
+          ) : (
+            <div className="nominations-grid">
+              {nominations.map(n => (
+                <div
+                  key={n.id}
+                  className="nomination-item"
+                  onClick={() => handleNominationClick(n.id, n.title)}
+                >
+                  <p className="nomination-text">{n.title}</p>
+                  {user?.role === 'moderator' && (
+                    <p className="nomination-subtext">Нажмите для модерации</p>
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       </main>
     </div>

@@ -17,13 +17,20 @@ const PersonalCabinetPage = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Для управления учетными записями
+  const [showUserManagement, setShowUserManagement] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [errorUsers, setErrorUsers] = useState('');
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    fetch(`${API}/api/auth/me`, { headers: { Authorization: token } })
+    fetch(`${API}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.text())
       .then(t => {
         if (t === "UNAUTHORIZED") return;
@@ -41,6 +48,32 @@ const PersonalCabinetPage = () => {
     role: user?.role || localStorage.getItem('userRole') || '',
     registeredDate: user?.registeredDate || localStorage.getItem('registeredDate') || ''
   };
+
+  // Загрузка пользователей при открытии управления
+  useEffect(() => {
+    if (showUserManagement) {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      setLoadingUsers(true);
+      fetch(`${API}/api/admin/users`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.text())
+        .then(t => {
+          if (t === "UNAUTHORIZED") {
+            setErrorUsers("Нет доступа");
+            setLoadingUsers(false);
+            return;
+          }
+          const data = JSON.parse(t);
+          setUsers(Array.isArray(data) ? data : []);
+          setLoadingUsers(false);
+        })
+        .catch(() => {
+          setErrorUsers("Ошибка загрузки пользователей");
+          setLoadingUsers(false);
+        });
+    }
+  }, [showUserManagement]);
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -66,7 +99,10 @@ const PersonalCabinetPage = () => {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API}/api/auth/change-password`, {
         method: "POST",
-        headers: { Authorization: token, "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
         body: new URLSearchParams({ currentPassword, newPassword })
       });
 
@@ -105,7 +141,10 @@ const PersonalCabinetPage = () => {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API}/api/auth/delete`, {
         method: "POST",
-        headers: { Authorization: token, "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
         body: new URLSearchParams({ password: deletePassword })
       });
 
@@ -166,7 +205,13 @@ const PersonalCabinetPage = () => {
               <div className="info-item">
                 <span className="info-label">Роль:</span>
                 <span className="info-value role-badge">
-                  {userData.role === 'jury' ? 'Член жюри' : 'Модератор'}
+                  {userData.role === 'jury'
+                    ? 'Член жюри'
+                    : userData.role === 'moderator'
+                      ? 'Модератор'
+                      : userData.role === 'admin'
+                        ? 'Администратор'
+                        : userData.role}
                 </span>
               </div>
 
@@ -176,31 +221,71 @@ const PersonalCabinetPage = () => {
               </div>
             </div>
 
-           
-{/* Секция администрирования */}
-<div className="admin-section">
-  <h3 className="section-title">Администрирование</h3>
-  
-  <div className="admin-buttons">
-    <button 
-      className="admin-button"
-      onClick={() => navigate('/register')}
-    >
-      Регистрация новых пользователей
-    </button>
-    
-    <button 
-      className="admin-button"
-      onClick={() => navigate('/admin/competition')}
-    >
-      Управление конкурсом
-    </button>
-  </div>
-</div>
+            {/* Секция администрирования */}
+            {userData.role === "admin" && (
+              <div className="admin-section">
+                <h3 className="section-title">Администрирование</h3>
 
+                <div className="admin-buttons">
+                  <button 
+                    className="admin-button"
+                    onClick={() => navigate('/register')}
+                  >
+                    Регистрация новых пользователей
+                  </button>
+                  
+                  <button 
+                    className="admin-button"
+                    onClick={() => navigate('/admin/competition')}
+                  >
+                    Управление конкурсом
+                  </button>
+
+                  <button
+  className="admin-button"
+  onClick={() => navigate('/admin/users')}
+>
+  Управление учетными записями
+</button>
+
+                </div>
+
+                {/* Таблица пользователей */}
+                {showUserManagement && (
+                  <div className="user-management-table">
+                    <h4 className="table-title">Список пользователей</h4>
+                    {loadingUsers ? (
+                      <p>Загрузка...</p>
+                    ) : errorUsers ? (
+                      <p className="error-message">{errorUsers}</p>
+                    ) : (
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th>Логин</th>
+                            <th>Роль</th>
+                            <th>Дата регистрации</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {users.map(u => (
+                            <tr key={u.id}>
+                              <td>{u.login}</td>
+                              <td>{u.role}</td>
+                              <td>{u.registeredDate}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Смена пароля */}
             <div className="section">
               <h3 className="section-title">Смена пароля</h3>
-
               {!showChangePassword ? (
                 <button
                   className="change-password-button"
@@ -220,7 +305,6 @@ const PersonalCabinetPage = () => {
                       required
                     />
                   </div>
-
                   <div className="form-group">
                     <input
                       type="password"
@@ -231,7 +315,6 @@ const PersonalCabinetPage = () => {
                       required
                     />
                   </div>
-
                   <div className="form-group">
                     <input
                       type="password"
@@ -250,11 +333,7 @@ const PersonalCabinetPage = () => {
                     <button
                       type="button"
                       className="cancel-button"
-                      onClick={() => {
-                        setShowChangePassword(false);
-                        setError('');
-                        setSuccess('');
-                      }}
+                      onClick={() => { setShowChangePassword(false); setError(''); setSuccess(''); }}
                     >
                       Отмена
                     </button>
@@ -263,6 +342,7 @@ const PersonalCabinetPage = () => {
               )}
             </div>
 
+            {/* Удаление аккаунта */}
             <div className="section danger-section">
               <h3 className="section-title danger-text">Удаление аккаунта</h3>
 
@@ -278,7 +358,6 @@ const PersonalCabinetPage = () => {
                       required
                     />
                   </div>
-
                   <button type="submit" className="delete-button-red">
                     Удалить аккаунт
                   </button>

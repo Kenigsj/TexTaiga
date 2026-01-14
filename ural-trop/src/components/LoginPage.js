@@ -48,7 +48,12 @@ const LoginPage = () => {
       localStorage.setItem("registeredDate", me.registeredDate);
 
       setUser({ id: me.id, login: me.login, role: me.role, registeredDate: me.registeredDate });
-      navigate('/main');
+
+      if (me.role === "admin") {
+        navigate('/cabinet');
+      } else {
+        navigate('/main');
+      }
     } catch (e2) {
       setError("Не удалось подключиться к серверу");
     }
@@ -96,20 +101,6 @@ const LoginPage = () => {
             <button type="submit" className="login-button">
               Войти
             </button>
-
-            <div className="text-center">
-              <a href="#forgot" className="forgot-link">Забыли пароль?</a>
-            </div>
-
-            <div className="text-center mt-3">
-              <span className="text-muted">Нет аккаунта? </span>
-              <a href="/register" className="auth-link" onClick={(e) => {
-                e.preventDefault();
-                navigate('/register');
-              }}>
-                Зарегистрироваться
-              </a>
-            </div>
           </form>
         </div>
       </main>

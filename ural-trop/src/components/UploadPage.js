@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../logo.png';
 import fon from '../image.png';
@@ -11,10 +11,36 @@ const UploadPage = () => {
   const [preview, setPreview] = useState(null);
   const [fio, setFio] = useState('');
   const [email, setEmail] = useState('');
+  const [nominationId, setNominationId] = useState('');
+  const [nominations, setNominations] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null);
+
   const navigate = useNavigate();
+
+  // --- Загрузка номинаций ---
+  useEffect(() => {
+    const fetchNominations = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await fetch(`${API}/api/nominations`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        setNominations(data);
+        if (data.length > 0) setNominationId(data[0].id.toString()); // default первый элемент
+      } catch (err) {
+        console.error('Ошибка загрузки номинаций:', err);
+      }
+    };
+
+    fetchNominations();
+  }, []);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -56,6 +82,7 @@ const UploadPage = () => {
     if (!file) return alert('Пожалуйста, выберите фотографию');
     if (!fio.trim()) return alert('Пожалуйста, введите ФИО');
     if (!email.trim()) return alert('Пожалуйста, введите email');
+    if (!nominationId) return alert('Пожалуйста, выберите номинацию');
 
     setIsLoading(true);
     setUploadStatus(null);
@@ -65,6 +92,7 @@ const UploadPage = () => {
       form.append("file", file);
       form.append("fio", fio);
       form.append("email", email);
+      form.append("nominationId", nominationId); // добавляем номинацию
 
       const res = await fetch(`${API}/api/public/upload`, {
         method: "POST",
@@ -79,6 +107,8 @@ const UploadPage = () => {
           setPreview(null);
           setFio('');
           setEmail('');
+          // ставим первую номинацию как выбранную
+          setNominationId(nominations.length > 0 ? nominations[0].id.toString() : '');
           setUploadStatus(null);
         }, 2500);
       } else {
@@ -150,9 +180,7 @@ const UploadPage = () => {
                       <h5>Загрузите свою фотографию</h5>
                       <p className="drop-zone-text">Перетащите сюда изображение или нажмите для выбора</p>
                       <div className="mt-3">
-                        <button className="select-file-button" type="button">
-                          Выберите файл
-                        </button>
+                        <button className="select-file-button" type="button">Выберите файл</button>
                       </div>
                       <small className="file-types-text">Поддерживаются: JPG, PNG, GIF</small>
                     </div>
@@ -163,54 +191,69 @@ const UploadPage = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="upload-form-below">
-            <div className="form-group-below">
-              <input
-                type="text"
-                className="form-control-below"
-                placeholder="ФИО"
-                value={fio}
-                onChange={(e) => setFio(e.target.value)}
-                required
-              />
-            </div>
+  {/* Новое поле: выбор номинации */}
+  <div className="form-group-below">
+    <label className="form-label-below">Номинации</label>
+    <select
+      className="form-control-below"
+      value={nominationId}
+      onChange={(e) => setNominationId(e.target.value)}
+      required
+    >
+      {nominations.map(n => (
+        <option key={n.id} value={n.id}>{n.title}</option>
+      ))}
+    </select>
+  </div>
 
-            <div className="form-group-below">
-              <input
-                type="email"
-                className="form-control-below"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <div className="form-text-below">
-                На этот email придут результаты конкурса
-              </div>
-            </div>
+  <div className="form-group-below">
+    <label className="form-label-below">ФИО</label>
+    <input
+      type="text"
+      className="form-control-below"
+      placeholder="ФИО"
+      value={fio}
+      onChange={(e) => setFio(e.target.value)}
+      required
+    />
+  </div>
 
-            {uploadStatus && (
-              <div className={`alert-message-below ${uploadStatus.type === 'success' ? 'success' : 'error'}`}>
-                {uploadStatus.message}
-              </div>
-            )}
+  <div className="form-group-below">
+    <label className="form-label-below">Email</label>
+    <input
+      type="email"
+      className="form-control-below"
+      placeholder="Email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      required
+    />
+    <div className="form-text-below">
+      На этот email придут результаты конкурса
+    </div>
+  </div>
 
-            <div className="upload-button-container-below">
-              <button
-                type="submit"
-                className="upload-button-below"
-                disabled={isLoading || !file}
-              >
-                {isLoading ? (
-                  <>
-                    <span className="spinner"></span>
-                    Загрузка...
-                  </>
-                ) : (
-                  'Загрузить'
-                )}
-              </button>
-            </div>
-          </form>
+  {uploadStatus && (
+    <div className={`alert-message-below ${uploadStatus.type === 'success' ? 'success' : 'error'}`}>
+      {uploadStatus.message}
+    </div>
+  )}
+
+  <div className="upload-button-container-below">
+    <button
+      type="submit"
+      className="upload-button-below"
+      disabled={isLoading || !file}
+    >
+      {isLoading ? (
+        <>
+          <span className="spinner"></span>
+          Загрузка...
+        </>
+      ) : 'Загрузить'}
+    </button>
+  </div>
+</form>
         </div>
       </main>
     </div>

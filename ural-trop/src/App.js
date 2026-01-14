@@ -1,6 +1,8 @@
 import React, { useEffect, useState, createContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+import RatingPage from './components/RatingPage';
 import LoginPage from './components/LoginPage';
 import RegistrationPage from './components/RegistrationPage';
 import MainPage from './components/MainPage';
@@ -9,8 +11,10 @@ import ModerationPage from './components/ModerationPage';
 import UploadPage from './components/UploadPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import PersonalCabinetPage from './components/PersonalCabinetPage';
-import './App.css';
 import AdminCompetitionPage from './components/AdminCompetitionPage';
+import UserManagementPage from './components/UserManagePage';
+
+import './App.css';
 
 export const UserContext = createContext();
 
@@ -24,23 +28,27 @@ function App() {
     if (!token) return;
 
     fetch(`${API}/api/auth/me`, {
-      headers: { Authorization: token }
+      headers: { Authorization: `Bearer ${token}` }
     })
       .then(r => r.text().then(t => ({ ok: r.ok, t })))
       .then(({ t }) => {
         if (t === "UNAUTHORIZED") {
-          localStorage.removeItem("token");
-          localStorage.removeItem("userLogin");
-          localStorage.removeItem("userRole");
-          localStorage.removeItem("registeredDate");
+          localStorage.clear();
           setUser(null);
           return;
         }
+
         const data = JSON.parse(t);
         localStorage.setItem("userLogin", data.login);
         localStorage.setItem("userRole", data.role);
         localStorage.setItem("registeredDate", data.registeredDate);
-        setUser({ id: data.id, login: data.login, role: data.role, registeredDate: data.registeredDate });
+
+        setUser({
+          id: data.id,
+          login: data.login,
+          role: data.role,
+          registeredDate: data.registeredDate
+        });
       })
       .catch(() => {});
   }, []);
@@ -48,39 +56,75 @@ function App() {
   return (
     <UserContext.Provider value={{ user, setUser }}>
       <Router>
-        <div className="App">
-          <Routes>
-            <Route path="/" element={<Navigate to="/upload" />} />
-            <Route path="/upload" element={<UploadPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegistrationPage />} />
-            <Route path="/cabinet" element={
+        <Routes>
+          <Route path="/" element={<Navigate to="/upload" />} />
+          <Route path="/upload" element={<UploadPage />} />
+          <Route path="/login" element={<LoginPage />} />
+
+          <Route
+            path="/register"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <RegistrationPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/cabinet"
+            element={
               <ProtectedRoute>
                 <PersonalCabinetPage />
               </ProtectedRoute>
-            } />
-            <Route path="/main" element={
+            }
+          />
+
+          <Route
+            path="/main"
+            element={
               <ProtectedRoute>
                 <MainPage />
               </ProtectedRoute>
-            } />
-            <Route path="/vote/:category" element={
-              <ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/vote/:category"
+            element={
+              <ProtectedRoute requiredRole={["jury", "admin"]}>
                 <VotingPage />
               </ProtectedRoute>
-            } />
-            <Route path="/moderate/:category" element={
-              <ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/moderate/:category"
+            element={
+              <ProtectedRoute requiredRole={["moderator", "admin"]}>
                 <ModerationPage />
               </ProtectedRoute>
-            } />
-            <Route path="/admin/competition" element={
-  <ProtectedRoute>
-    <AdminCompetitionPage />
-  </ProtectedRoute>
-} />
-          </Routes>
-        </div>
+            }
+          />
+
+          <Route
+            path="/admin/competition"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminCompetitionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+  path="/rating"
+  element={
+    <ProtectedRoute>
+      <RatingPage />
+    </ProtectedRoute>
+  }
+/>
+<Route path="/admin/users" element={<UserManagementPage />} />
+
+        </Routes>
       </Router>
     </UserContext.Provider>
   );

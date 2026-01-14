@@ -1923,3 +1923,145 @@
   border-radius: 15px;
   margin: 20px 0;
 }
+
+.header-buttons {
+  display: flex;
+  gap: 10px; /* расстояние между кнопками */
+}
+.rating-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.rating-table th, .rating-table td {
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.rating-table th {
+  background-color: #007bff;
+  color: #fff;
+  font-weight: 600;
+}
+
+.rating-table tr:nth-child(even) {
+  background-color: #f7f7f7;
+}
+
+.rating-table tr:hover {
+  background-color: #e9f2ff;
+}
+.rating-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.rating-table th,
+.rating-table td {
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.rating-table th {
+  background-color: #007bff;
+  color: #fff;
+  font-weight: 600;
+}
+
+.rating-table tr:nth-child(even) {
+  background-color: #f7f7f7;
+}
+
+.rating-table tr:hover {
+  background-color: #e6f0ff;
+}
+
+.form-label-below {
+  display: block;         /* чтобы было сверху от поля */
+  color: #fff;            /* белый текст */
+  font-weight: 600;       /* жирнее */
+  margin-bottom: 6px;     /* отступ от поля, чтобы не присасывалась */
+  font-size: 14px;        /* аккуратный размер */
+}
+.form-group-below {
+  margin-bottom: 0px; /* уменьшаем отступ между полями (по умолчанию было больше) */
+}
+
+.form-label-below {
+  margin-bottom: 0px; /* чуть меньше, чтобы лейбл был ближе к полю, но не присасывался */
+}
+.user-management-table {
+  margin-top: 15px;
+  background: rgba(0,0,0,0.6);
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  color: #fff;
+}
+
+.user-management-table .table-title {
+  margin-bottom: 10px;
+  font-weight: 600;
+  text-align: left;
+  color: #fff;
+}
+
+.user-management-table .table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-management-table th,
+.user-management-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #ccc;
+  color: #fff;
+  text-align: left;
+}
+
+.user-management-table th {
+  background: rgba(255,255,255,0.1);
+}
+
+.user-management-table tr:hover {
+  background: rgba(255,255,255,0.1);
+}
+.user-management-table {
+  margin-top: 15px;
+  background: rgba(0,0,0,0.6);
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
+  color: #fff;
+}
+
+.user-management-table .table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-management-table th,
+.user-management-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #ccc;
+  color: #fff;
+  text-align: left;
+}
+
+.user-management-table th {
+  background: rgba(255,255,255,0.1);
+}
+
+.user-management-table tr:hover {
+  background: rgba(255,255,255,0.1);
+}

@@ -12,12 +12,20 @@ const RegistrationPage = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('jury');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
-  const { setUser } = useContext(UserContext);
+  const { user } = useContext(UserContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate('/login');
+      return;
+    }
 
     if (!login.trim() || !password.trim() || !confirmPassword.trim()) {
       setError('Все поля обязательны для заполнения');
@@ -37,40 +45,49 @@ const RegistrationPage = () => {
     try {
       const res = await fetch(`${API}/api/auth/register`, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
         body: new URLSearchParams({ login, password, role })
       });
 
-      const token = await res.text();
-      if (token === "INVALID") {
-        setError("Ошибка регистрации");
+      const text = await res.text();
+
+      if (text === "FORBIDDEN") {
+        setError("Нет прав: регистрацию может делать только админ");
         return;
       }
-      if (token === "EXISTS") {
+
+      if (text === "EXISTS") {
         setError("Логин уже занят");
         return;
       }
 
-      localStorage.setItem("token", token);
-
-      const meRes = await fetch(`${API}/api/auth/me`, { headers: { Authorization: token } });
-      const meText = await meRes.text();
-      if (meText === "UNAUTHORIZED") {
-        setError("Ошибка авторизации");
+      if (text === "INVALID") {
+        setError("Ошибка регистрации");
         return;
       }
 
-      const me = JSON.parse(meText);
-      localStorage.setItem("userLogin", me.login);
-      localStorage.setItem("userRole", me.role);
-      localStorage.setItem("registeredDate", me.registeredDate);
+      if (text !== "OK") {
+        setError("Ошибка: " + text);
+        return;
+      }
 
-      setUser({ id: me.id, login: me.login, role: me.role, registeredDate: me.registeredDate });
-      navigate('/main');
+      setSuccess("Пользователь успешно зарегистрирован");
+      setLogin('');
+      setPassword('');
+      setConfirmPassword('');
+      setRole('jury');
     } catch {
       setError("Не удалось подключиться к серверу");
     }
   };
+
+  const displayRole =
+    user?.role ||
+    localStorage.getItem("userRole") ||
+    '';
 
   return (
     <div className="login-page">
@@ -84,6 +101,12 @@ const RegistrationPage = () => {
         <div className="login-form-container">
           <h1 className="login-title">Регистрация</h1>
 
+          {displayRole !== "admin" && (
+            <div className="error-message">
+              Доступ запрещен: страницу регистрации новых пользователей видит только админ.
+            </div>
+          )}
+
           <form className="login-form" onSubmit={handleSubmit}>
             <div className="input-container">
               <input
@@ -93,9 +116,11 @@ const RegistrationPage = () => {
                 onChange={(e) => setLogin(e.target.value)}
                 placeholder=" "
                 required
+                disabled={displayRole !== "admin"}
               />
               <label className="input-label">Логин</label>
             </div>
+
 
             <div className="input-container">
               <input
@@ -105,6 +130,7 @@ const RegistrationPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder=" "
                 required
+                disabled={displayRole !== "admin"}
               />
               <label className="input-label">Пароль</label>
             </div>
@@ -117,6 +143,7 @@ const RegistrationPage = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder=" "
                 required
+                disabled={displayRole !== "admin"}
               />
               <label className="input-label">Подтверждение пароля</label>
             </div>
@@ -128,13 +155,15 @@ const RegistrationPage = () => {
                   type="button"
                   className={`role-button ${role === 'jury' ? 'active' : ''}`}
                   onClick={() => setRole('jury')}
+                  disabled={displayRole !== "admin"}
                 >
                   Жюри
                 </button>
                 <button
                   type="button"
-                  className={`role-button ${role === 'moderation' ? 'active' : ''}`}
-                  onClick={() => setRole('moderation')}
+                  className={`role-button ${role === 'moderator' ? 'active' : ''}`}
+                  onClick={() => setRole('moderator')}
+                  disabled={displayRole !== "admin"}
                 >
                   Модерация
                 </button>
@@ -142,18 +171,26 @@ const RegistrationPage = () => {
             </div>
 
             {error && <div className="error-message">{error}</div>}
+            {success && <div className="message success">{success}</div>}
 
-            <button type="submit" className="login-button">
-              Зарегистрироваться
+            <button
+              type="submit"
+              className="login-button"
+              disabled={displayRole !== "admin"}
+            >
+              Зарегистрировать
             </button>
 
             <div className="text-center mt-3">
-              <span className="text-muted">Уже есть аккаунт? </span>
-              <a href="/login" className="auth-link" onClick={(e) => {
-                e.preventDefault();
-                navigate('/login');
-              }}>
-                Войти
+              <a
+                href="/cabinet"
+                className="auth-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate('/cabinet');
+                }}
+              >
+                Назад в личный кабинет
               </a>
             </div>
           </form>

@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import logo from '../logo.png';
 import './../App.css';
 
@@ -10,54 +10,105 @@ const ModerationPage = () => {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState('');
+  const [nominationTitle, setNominationTitle] = useState('Номинация');
+  const [nominationId, setNominationId] = useState(1);
+  const [nominations, setNominations] = useState([]);
+  const [moveNominationId, setMoveNominationId] = useState(1);
+
   const navigate = useNavigate();
+  const location = useLocation();
   const { category } = useParams();
 
-  const nominationTitles = {
-    'best-photographer': 'Лучший фотограф',
-    'nomination-2': '2 НОМИНАЦИЯ',
-    'nomination-3': '3 НОМИНАЦИЯ',
-    'nomination-4': '4 НОМИНАЦИЯ'
-  };
-
-  const nominationNumber = useMemo(() => {
-    switch (category) {
-      case "best-photographer": return 1;
-      case "nomination-2": return 2;
-      case "nomination-3": return 3;
-      case "nomination-4": return 4;
-      default: return 1;
+  // 1) Вытаскиваем nominationId/title из state (или из URL nomination-<id>)
+  useEffect(() => {
+    if (location.state) {
+      const id = location.state.nominationId || 1;
+      const title = location.state.nominationTitle || 'Номинация';
+      setNominationId(id);
+      setNominationTitle(title);
+      setMoveNominationId(id);
+      return;
     }
-  }, [category]);
 
-  const load = async () => {
+    const idFromCategory = category?.replace('nomination-', '');
+    const parsed = parseInt(idFromCategory, 10);
+    const id = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+
+    setNominationId(id);
+    setNominationTitle(`Номинация ${id}`);
+    setMoveNominationId(id);
+  }, [category, location.state]);
+
+  // 2) Грузим справочник номинаций (для нормального заголовка + выбора)
+  const fetchNominations = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await fetch(`${API}/api/nominations`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setNominations(Array.isArray(data) ? data : []);
+
+      // если мы сюда попали без state — подменим "Номинация 2" на реальный title
+      const found = (Array.isArray(data) ? data : []).find(n => Number(n.id) === Number(nominationId));
+      if (found && found.title) setNominationTitle(found.title);
+    } catch {
+      // молча, не критично
+    }
+  }, [nominationId]);
+
+  // 3) Грузим участников по номинации
+  const load = useCallback(async () => {
     setError('');
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${API}/api/participants?nomination=${nominationNumber}`, {
-        headers: { Authorization: token }
-      });
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      const res = await fetch(`${API}/api/participants?nomination=${nominationId}`, {
+  headers: { Authorization: `Bearer ${token}` }
+});
+
+
       const text = await res.text();
       if (text === "UNAUTHORIZED") {
         navigate("/login");
         return;
       }
+
       const data = JSON.parse(text);
-      setPhotos(data.map(p => ({
-        id: p.id,
-        src: p.photoUrl,
-        title: p.fio || `Фото ${p.id}`,
-        status: p.status || 'pending'
-      })));
+      setPhotos(
+        (Array.isArray(data) ? data : []).map(p => ({
+          id: p.id,
+          src: p.photoUrl,
+          title: p.fio || `Фото ${p.id}`,
+          status: p.status || 'pending',
+          nomination: p.nomination || nominationId
+        }))
+      );
     } catch {
       setError("Не удалось загрузить список");
     }
-  };
+  }, [navigate, nominationId]);
 
-  useEffect(() => { load(); }, [nominationNumber]);
+  useEffect(() => {
+    fetchNominations();
+  }, [fetchNominations]);
+
+  useEffect(() => {
+    if (nominationId) load();
+  }, [nominationId, load]);
 
   const handlePhotoClick = (photo) => {
     setSelectedPhoto(photo);
+    setMoveNominationId(photo.nomination || nominationId);
     setIsModalOpen(true);
   };
 
@@ -66,19 +117,54 @@ const ModerationPage = () => {
     setSelectedPhoto(null);
   };
 
+
   const postModeration = async (id, action) => {
     try {
       const token = localStorage.getItem("token");
       const res = await fetch(`${API}/api/moderation/participant/${id}/${action}`, {
         method: "POST",
-        headers: { Authorization: token }
+        headers: { Authorization: `Bearer ${token}` }
+
       });
       const text = await res.text();
       if (text === "OK") {
-        await load();
-        setIsModalOpen(false);
-        return;
-      }
+  setPhotos(prev =>
+    prev.map(p =>
+      p.id === id
+        ? { ...p, status: action === "approve" ? "approved" : "rejected" }
+        : p
+    )
+  );
+  setIsModalOpen(false);
+  return;
+}
+
+      alert("Ошибка: " + text);
+    } catch {
+      alert("Не удалось подключиться к серверу");
+    }
+  };
+
+  const setNomination = async (id, newNomId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API}/api/moderation/participant/${id}/set-nomination?nomination=${newNomId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+
+      });
+      const text = await res.text();
+      if (text === "OK") {
+  setPhotos(prev =>
+    prev.map(p =>
+      p.id === id
+        ? { ...p, nomination: newNomId }
+        : p
+    )
+  );
+  return;
+}
+
       alert("Ошибка: " + text);
     } catch {
       alert("Не удалось подключиться к серверу");
@@ -105,6 +191,12 @@ const ModerationPage = () => {
   const approvedCount = photos.filter(p => p.status === 'approved').length;
   const rejectedCount = photos.filter(p => p.status === 'rejected').length;
 
+  const titleForHeader = useMemo(() => {
+    if (nominationTitle && nominationTitle !== 'Номинация') return nominationTitle;
+    const found = nominations.find(n => Number(n.id) === Number(nominationId));
+    return found?.title || nominationTitle || 'Номинация';
+  }, [nominations, nominationId, nominationTitle]);
+
   return (
     <div className="nominations-page">
       <header className="nominations-header">
@@ -129,7 +221,7 @@ const ModerationPage = () => {
         <div className="nominations-container">
           <div className="nomination-title-card">
             <h2 className="nomination-title-text">
-              {nominationTitles[category] || 'Номинация'} - Модерация
+              {titleForHeader} - Модерация
             </h2>
             <p className="moderation-subtitle">Рассмотрение загруженных фотографий</p>
           </div>
@@ -154,6 +246,7 @@ const ModerationPage = () => {
           </div>
 
           {error && <div className="error-message">{error}</div>}
+
 
           <div className="photos-grid">
             {photos.map(photo => (
@@ -194,9 +287,35 @@ const ModerationPage = () => {
 
               <div className="photo-details">
                 <h4>{selectedPhoto.title}</h4>
-                <p>Статус: <span style={{ color: getStatusColor(selectedPhoto.status) }}>
-                  {getStatusText(selectedPhoto.status)}
-                </span></p>
+
+                <p>
+                  Статус: <span style={{ color: getStatusColor(selectedPhoto.status) }}>
+                    {getStatusText(selectedPhoto.status)}
+                  </span>
+                </p>
+
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ marginBottom: 6, fontWeight: 600 }}>Номинация:</div>
+                  <select
+                    value={moveNominationId}
+                    onChange={(e) => setMoveNominationId(parseInt(e.target.value, 10))}
+                    style={{ width: "100%", padding: 8, borderRadius: 8 }}
+                  >
+                    {nominations.map(n => (
+                      <option key={n.id} value={n.id}>
+                        {n.title}
+                      </option>
+                    ))}
+                  </select>
+
+                  <button
+                    className="moderation-button approve-button"
+                    style={{ marginTop: 10, width: "100%" }}
+                    onClick={() => setNomination(selectedPhoto.id, moveNominationId)}
+                  >
+                    Переместить в номинацию
+                  </button>
+                </div>
               </div>
             </div>
 
